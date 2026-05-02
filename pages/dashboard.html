@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard - Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+.score-row{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;border-bottom:1px solid var(--border)}
+.score-row:last-child{border-bottom:none}
+.draw-card{background:var(--panel);border:1px solid rgba(201,168,76,.18);border-radius:var(--r-xl);padding:1.75rem;margin-bottom:1.25rem}
+.draw-balls{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0}
+.win-card{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:var(--r-xl);padding:1.75rem;margin-bottom:1rem}
+.plan-option{border:2px solid var(--border);border-radius:var(--r-xl);padding:1.75rem;cursor:pointer;transition:border-color .2s,background .2s;background:var(--panel)}
+.plan-option:hover{border-color:rgba(201,168,76,.3)}
+.plan-option.selected{border-color:var(--gold);background:rgba(201,168,76,.05);box-shadow:0 0 48px rgba(201,168,76,.12)}
+.pct-display-big{font-family:var(--f-display);font-size:3rem;font-weight:700;color:var(--gold);line-height:1}
+.mobile-nav{display:none;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;padding:.4rem;gap:.25rem;white-space:nowrap}
+.score-entry{display:grid;grid-template-columns:1fr 1fr auto;gap:.75rem;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem}
+.score-entry .form-group{margin-bottom:0}
+@media(max-width:700px){.mobile-nav{display:flex}.score-entry{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}.score-entry .btn{grid-column:1/-1}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-brand">Par<em>4</em>Good</a>
+  <div class="nav-right" id="nav-right">
+    <a href="/pages/charities.html" class="nav-link hide-sm">Charities</a>
+    <button onclick="signOut()" class="btn btn-ghost btn-sm">Sign Out</button>
+  </div>
+</nav>
+
+<!-- Mobile nav -->
+<div class="mobile-nav" id="mobile-nav">
+  <button class="sb-item active" data-nav="overview" onclick="go('overview')"><span class="sb-icon">&#127968;</span>Overview</button>
+  <button class="sb-item" data-nav="scores" onclick="go('scores')"><span class="sb-icon">&#9971;</span>Scores</button>
+  <button class="sb-item" data-nav="draws" onclick="go('draws')"><span class="sb-icon">&#127919;</span>Draws</button>
+  <button class="sb-item" data-nav="winnings" onclick="go('winnings')"><span class="sb-icon">&#127942;</span>Wins</button>
+  <button class="sb-item" data-nav="charity" onclick="go('charity')"><span class="sb-icon">&#128154;</span>Charity</button>
+  <button class="sb-item" data-nav="subscription" onclick="go('subscription')"><span class="sb-icon">&#128179;</span>Plan</button>
+  <button class="sb-item" data-nav="profile" onclick="go('profile')"><span class="sb-icon">&#128100;</span>Profile</button>
+</div>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-section">Player</div>
+    <button class="sb-item active" data-nav="overview" onclick="go('overview')"><span class="sb-icon">&#127968;</span>Overview</button>
+    <button class="sb-item" data-nav="scores" onclick="go('scores')"><span class="sb-icon">&#9971;</span>My Scores</button>
+    <button class="sb-item" data-nav="draws" onclick="go('draws')"><span class="sb-icon">&#127919;</span>Draws</button>
+    <button class="sb-item" data-nav="winnings" onclick="go('winnings')"><span class="sb-icon">&#127942;</span>Winnings</button>
+    <div class="sb-section">Account</div>
+    <button class="sb-item" data-nav="charity" onclick="go('charity')"><span class="sb-icon">&#128154;</span>My Charity</button>
+    <button class="sb-item" data-nav="subscription" onclick="go('subscription')"><span class="sb-icon">&#128179;</span>Subscription</button>
+    <button class="sb-item" data-nav="profile" onclick="go('profile')"><span class="sb-icon">&#128100;</span>Profile</button>
+    <div class="sb-foot">
+      <button class="sb-item" onclick="signOut()"><span class="sb-icon">&#8617;</span>Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main-area">
+
+    <!-- OVERVIEW -->
+    <div data-panel="overview" class="active">
+      <div class="flex items-center justify-between mb-lg">
+        <div>
+          <h1 class="display-md">Welcome back, <span class="gold-text" id="ov-name">...</span></h1>
+          <p class="text-sm text-muted mt-xs" id="ov-sub-line">Loading subscription...</p>
+        </div>
+        <span class="badge" id="ov-badge">...</span>
+      </div>
+
+      <div class="stat-grid mb-lg">
+        <div class="stat-box"><div class="stat-label">Scores Logged</div><div class="stat-value" id="ov-score-cnt">0</div><div class="stat-sub">of 5 max</div></div>
+        <div class="stat-box"><div class="stat-label">Total Winnings</div><div class="stat-value" id="ov-total-won">&#163;0.00</div></div>
+        <div class="stat-box"><div class="stat-label">Charity / Month</div><div class="stat-value" id="ov-charity-est">&#163;0.00</div><div class="stat-sub">est. this month</div></div>
+        <div class="stat-box"><div class="stat-label">Plan</div><div class="stat-value" id="ov-plan" style="font-size:1.2rem">None</div></div>
+      </div>
+
+      <div class="card mb-lg">
+        <h3 class="mb-md">Quick Score Entry</h3>
+        <div class="score-entry">
+          <div class="form-group"><label class="form-label">Score (1-45)</label><input type="number" class="form-control" id="ov-sc" min="1" max="45" placeholder="e.g. 34"/></div>
+          <div class="form-group"><label class="form-label">Date Played</label><input type="date" class="form-control" id="ov-dt"/></div>
+          <button class="btn btn-gold" onclick="quickAddScore()">Add</button>
+        </div>
+        <div id="ov-scores-preview" class="mt-sm"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="mb-md">Latest Draw - Your Result</h3>
+        <div id="ov-draw"><p class="text-sm text-muted">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- SCORES -->
+    <div data-panel="scores">
+      <div class="flex items-center justify-between mb-lg">
+        <h1 class="display-md">My Scores</h1>
+        <span class="badge badge-gold" id="sc-count-badge">0 / 5</span>
+      </div>
+      <p class="text-muted mb-lg" style="max-width:540px">Your 5 most recent Stableford scores are your draw numbers. Adding a 6th removes the oldest. One score per date only.</p>
+      <div class="card mb-lg">
+        <h3 class="mb-md">Add New Score</h3>
+        <div class="score-entry">
+          <div class="form-group"><label class="form-label">Score (1-45)</label><input type="number" class="form-control" id="sc-score" min="1" max="45"/></div>
+          <div class="form-group"><label class="form-label">Date Played</label><input type="date" class="form-control" id="sc-date"/></div>
+          <button class="btn btn-gold" onclick="addScore()">Add Score</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="sc-list"><div class="flex justify-center" style="padding:2rem"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- DRAWS -->
+    <div data-panel="draws">
+      <h1 class="display-md mb-lg">Monthly Draws</h1>
+      <p class="text-muted mb-lg" style="max-width:540px">Published draws shown below. Green balls mean your score matched a draw number.</p>
+      <div id="draws-list"><div class="flex justify-center" style="padding:3rem"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- WINNINGS -->
+    <div data-panel="winnings">
+      <h1 class="display-md mb-lg">My Winnings</h1>
+      <div id="wins-list"><div class="flex justify-center" style="padding:3rem"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- CHARITY -->
+    <div data-panel="charity">
+      <h1 class="display-md mb-lg">My Charity</h1>
+      <div style="background:var(--panel);border:1px solid rgba(201,168,76,.22);border-radius:var(--r-lg);padding:1.75rem;box-shadow:0 0 48px rgba(201,168,76,.12)" class="mb-lg">
+        <h3 class="mb-sm">Monthly Contribution</h3>
+        <p class="text-sm text-muted">Set what percentage of your subscription goes to your chosen charity. Minimum 10%.</p>
+        <div class="flex items-end gap-md mt-md mb-sm">
+          <div class="pct-display-big" id="ch-pct-display">10%</div>
+          <span class="text-sm text-muted mb-xs" id="ch-amount-hint">approx &#163;1.00 / month</span>
+        </div>
+        <input type="range" id="ch-pct-range" min="10" max="100" step="5" value="10"
+          oninput="onPctChange(this.value)" style="width:100%;max-width:400px"/>
+        <button class="btn btn-gold btn-sm mt-md" onclick="saveCharityPct()">Save Contribution</button>
+      </div>
+      <h3 class="mb-md">Choose Your Charity</h3>
+      <div id="ch-list" class="flex-col gap-sm"></div>
+      <button class="btn btn-gold mt-md" onclick="saveCharitySelection()">Save Selection</button>
+    </div>
+
+    <!-- SUBSCRIPTION -->
+    <div data-panel="subscription">
+      <h1 class="display-md mb-lg">Subscription</h1>
+      <div id="sub-status-card" class="card mb-lg"><p class="text-muted">Loading...</p></div>
+      <div id="sub-plans-wrap"></div>
+      <div id="sub-actions" class="mt-md flex gap-sm flex-wrap"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div data-panel="profile">
+      <h1 class="display-md mb-lg">Profile Settings</h1>
+      <div class="card" style="max-width:480px">
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-control" id="pf-name"/></div>
+        <div class="form-group"><label class="form-label">Email Address</label><input type="email" class="form-control" id="pf-email" disabled/></div>
+        <button class="btn btn-gold mt-sm" onclick="saveProfile()">Save Changes</button>
+      </div>
+      <div class="card mt-lg" style="max-width:480px">
+        <h3 class="mb-sm">Password</h3>
+        <p class="text-sm text-muted mb-md">Send a password reset link to your email.</p>
+        <button class="btn btn-ghost btn-sm" onclick="sendPassReset()">Send Password Reset Email</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Edit Score Modal -->
+<div class="overlay" id="edit-overlay">
+  <div class="modal">
+    <div class="modal-hd"><h3>Edit Score</h3><button class="modal-close" onclick="closeOverlay('edit-overlay')">&#10005;</button></div>
+    <input type="hidden" id="edit-id"/>
+    <div class="form-group"><label class="form-label">Score (1-45)</label><input type="number" class="form-control" id="edit-sc" min="1" max="45"/></div>
+    <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-control" id="edit-dt"/></div>
+    <button class="btn btn-gold btn-full mt-sm" onclick="saveEditScore()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Proof Upload Modal -->
+<div class="overlay" id="proof-overlay">
+  <div class="modal">
+    <div class="modal-hd"><h3>Submit Proof of Scores</h3><button class="modal-close" onclick="closeOverlay('proof-overlay')">&#10005;</button></div>
+    <p class="text-sm text-muted mb-md">Paste a direct URL to a screenshot from your golf club platform showing your scores.</p>
+    <div class="form-group"><label class="form-label">Screenshot URL</label><input type="url" class="form-control" id="proof-url-inp" placeholder="https://..."/></div>
+    <input type="hidden" id="proof-win-id"/>
+    <button class="btn btn-gold btn-full mt-sm" onclick="submitProof()">Submit Proof</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function money(pence) {
+  if (!pence && pence !== 0) return '--';
+  return '\u00a3' + (Number(pence) / 100).toFixed(2);
+}
+
+function fmtDate(d) {
+  if (!d) return '--';
+  return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function fmtMonth(m) {
+  if (!m) return '--';
+  var p = m.split('-');
+  return new Date(Number(p[0]), Number(p[1]) - 1).toLocaleString('en-GB', { month:'long', year:'numeric' });
+}
+
+function toast(msg, type) {
+  var wrap = document.getElementById('toasts');
+  if (!wrap) return;
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + (type || 'info');
+  el.innerHTML = '<span>' + msg + '</span>';
+  wrap.appendChild(el);
+  setTimeout(function() { el.remove(); }, 4000);
+}
+
+function openOverlay(id) { document.getElementById(id).classList.add('show'); }
+window.closeOverlay = function(id) { document.getElementById(id).classList.remove('show'); };
+
+// Close overlay on backdrop click
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('overlay')) e.target.classList.remove('show');
+});
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
+var SESSION = null;
+var USER    = null;
+var SCORES  = [];
+var CHARITIES = [];
+var SEL_CHARITY = null;
+
+(async function init() {
+  var r = await supabase.auth.getSession();
+  SESSION = r.data && r.data.session;
+
+  if (!SESSION) {
+    window.location.href = '/pages/login.html';
+    return;
+  }
+
+  // Load profile + subscription
+  var uid = SESSION.user.id;
+  var pr  = await supabase.from('profiles').select('*').eq('id', uid).single();
+  var sr  = await supabase.from('subscriptions').select('*').eq('user_id', uid).maybeSingle();
+
+  USER = pr.data || {};
+  USER.email = SESSION.user.email;
+  USER.subscription = sr.data || null;
+
+  var sub    = USER.subscription;
+  var active = sub && sub.status === 'active';
+
+  // Overview header
+  document.getElementById('ov-name').textContent = USER.name || USER.email;
+  document.getElementById('pf-name').value  = USER.name  || '';
+  document.getElementById('pf-email').value = USER.email || '';
+
+  document.getElementById('ov-sub-line').textContent = active
+    ? (sub.plan + ' plan - renews ' + fmtDate(sub.end_date))
+    : 'No active subscription - subscribe to enter draws';
+
+  document.getElementById('ov-badge').textContent  = active ? 'Active' : 'Inactive';
+  document.getElementById('ov-badge').className    = 'badge ' + (active ? 'badge-jade' : 'badge-ember');
+  document.getElementById('ov-plan').textContent   = sub ? sub.plan : 'None';
+
+  // Charity pct
+  var pct = USER.charity_percent || 10;
+  document.getElementById('ch-pct-range').value     = pct;
+  document.getElementById('ch-pct-display').textContent = pct + '%';
+  SEL_CHARITY = USER.charity_id;
+  updateCharityHint(pct, sub && sub.plan);
+
+  // Dates
+  var today = new Date().toISOString().slice(0, 10);
+  document.getElementById('ov-dt').value  = today;
+  document.getElementById('sc-date').value = today;
+
+  await loadScores();
+  await loadOverviewDraw();
+  await loadWinningsCount();
+
+  // Handle hash navigation
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.querySelector('[data-nav="' + hash + '"]')) {
+    go(hash);
+  }
+})();
+
+window.signOut = async function() {
+  await supabase.auth.signOut();
+  window.location.href = '/';
+};
+
+// ── Panel navigation ──────────────────────────────────────────────────────────
+window.go = function(name) {
+  document.querySelectorAll('[data-panel]').forEach(function(p) { p.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + name) || document.querySelector('[data-panel="' + name + '"]');
+  if (panel) panel.classList.add('active');
+
+  document.querySelectorAll('[data-nav]').forEach(function(n) {
+    n.classList.toggle('active', n.dataset.nav === name);
+  });
+
+  if (name === 'draws')        loadDraws();
+  if (name === 'winnings')     loadWinnings();
+  if (name === 'charity')      loadCharities();
+  if (name === 'subscription') loadSubscription();
+};
+
+// ── Scores ────────────────────────────────────────────────────────────────────
+async function loadScores() {
+  var r = await supabase.from('scores').select('*')
+    .eq('user_id', SESSION.user.id).order('date', { ascending: false });
+  SCORES = r.data || [];
+  renderScores();
+  document.getElementById('ov-score-cnt').textContent     = SCORES.length;
+  document.getElementById('sc-count-badge').textContent   = SCORES.length + ' / 5';
+}
+
+function ballHTML(score, matchClass) {
+  return '<div class="score-ball ' + (matchClass || 'score-ball-gold') + '">' + score + '</div>';
+}
+
+function renderScores() {
+  var html = '';
+  if (!SCORES.length) {
+    html = '<p class="text-sm text-muted" style="padding:1.5rem 0">No scores yet. Add your first score above!</p>';
+  } else {
+    SCORES.forEach(function(s) {
+      html += '<div class="score-row">' +
+        '<div class="flex items-center gap-sm">' + ballHTML(s.score) +
+        '<div><div class="font-bold">' + s.score + ' pts</div><div class="text-xs text-muted">' + fmtDate(s.date) + '</div></div></div>' +
+        '<div class="flex gap-xs">' +
+        '<button class="btn btn-panel btn-sm" onclick="openEditScore(\'' + s.id + '\',' + s.score + ',\'' + s.date + '\')">Edit</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteScore(\'' + s.id + '\')">Delete</button>' +
+        '</div></div>';
+    });
+  }
+  document.getElementById('sc-list').innerHTML = html;
+
+  // Overview preview (no action buttons)
+  var prev = '';
+  SCORES.forEach(function(s) {
+    prev += '<div class="score-row"><div class="flex items-center gap-sm">' +
+      ballHTML(s.score) + '<span class="text-sm">' + s.score + ' pts - ' + fmtDate(s.date) + '</span></div></div>';
+  });
+  document.getElementById('ov-scores-preview').innerHTML = prev;
+}
+
+async function insertScore(score, date) {
+  if (!score || !date) { toast('Enter a score and date', 'error'); return; }
+  if (score < 1 || score > 45) { toast('Score must be between 1 and 45', 'error'); return; }
+
+  var sub = USER.subscription;
+  if (!sub || sub.status !== 'active') {
+    toast('Active subscription required. Please subscribe first.', 'error');
+    setTimeout(function() { window.location.href = '/pages/subscribe.html'; }, 2000);
+    return;
+  }
+
+  var ins = await supabase.from('scores').insert({
+    user_id: SESSION.user.id, score: Number(score), date: date
+  });
+
+  if (ins.error) {
+    if (ins.error.code === '23505') toast('A score for this date already exists', 'error');
+    else toast(ins.error.message, 'error');
+    return;
+  }
+  toast('Score added!', 'success');
+  await loadScores();
+}
+
+window.quickAddScore = async function() {
+  var sc = parseInt(document.getElementById('ov-sc').value);
+  var dt = document.getElementById('ov-dt').value;
+  await insertScore(sc, dt);
+  document.getElementById('ov-sc').value = '';
+};
+
+window.addScore = async function() {
+  await insertScore(
+    parseInt(document.getElementById('sc-score').value),
+    document.getElementById('sc-date').value
+  );
+  document.getElementById('sc-score').value = '';
+};
+
+window.openEditScore = function(id, score, date) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-sc').value = score;
+  document.getElementById('edit-dt').value = date;
+  openOverlay('edit-overlay');
+};
+
+window.saveEditScore = async function() {
+  var id    = document.getElementById('edit-id').value;
+  var score = parseInt(document.getElementById('edit-sc').value);
+  var date  = document.getElementById('edit-dt').value;
+  if (score < 1 || score > 45) { toast('Score must be 1-45', 'error'); return; }
+  var r = await supabase.from('scores').update({ score: score, date: date })
+    .eq('id', id).eq('user_id', SESSION.user.id);
+  if (r.error) { toast(r.error.message, 'error'); return; }
+  toast('Score updated!', 'success');
+  window.closeOverlay('edit-overlay');
+  await loadScores();
+};
+
+window.deleteScore = async function(id) {
+  if (!confirm('Delete this score?')) return;
+  await supabase.from('scores').delete().eq('id', id).eq('user_id', SESSION.user.id);
+  toast('Score deleted', 'info');
+  await loadScores();
+};
+
+// ── Draws ─────────────────────────────────────────────────────────────────────
+async function loadOverviewDraw() {
+  var r = await supabase.from('draws').select('*').eq('status', 'published')
+    .order('month', { ascending: false }).limit(1);
+  var el = document.getElementById('ov-draw');
+  if (!r.data || !r.data.length) {
+    el.innerHTML = '<p class="text-sm text-muted">No draws published yet.</p>';
+    return;
+  }
+  var d = r.data[0];
+  var myNums = SCORES.map(function(s) { return s.score; });
+  var ballsHTML = '';
+  d.numbers.forEach(function(n) {
+    var cls = myNums.indexOf(n) >= 0 ? 'score-ball-match' : 'score-ball-muted';
+    ballsHTML += ballHTML(n, cls);
+  });
+  var matched = d.numbers.filter(function(n) { return myNums.indexOf(n) >= 0; }).length;
+  el.innerHTML =
+    '<div class="flex items-center gap-sm mb-md">' +
+    '<span class="badge badge-jade">' + fmtMonth(d.month) + '</span>' +
+    (matched >= 3 ? '<span class="badge badge-gold">&#127881; ' + matched + '-Number Match!</span>' : '') +
+    '</div>' +
+    '<div class="draw-balls">' + ballsHTML + '</div>' +
+    '<p class="text-xs text-muted">' + (SCORES.length ? 'Green = your score matched a draw number' : 'Add scores to see your matches') + '</p>';
+}
+
+async function loadDraws() {
+  var el = document.getElementById('draws-list');
+  var r = await supabase.from('draws').select('*').eq('status', 'published')
+    .order('month', { ascending: false });
+  if (!r.data || !r.data.length) {
+    el.innerHTML = '<div class="card text-center"><p class="text-muted" style="padding:2rem">No draws published yet.</p></div>';
+    return;
+  }
+  var myNums = SCORES.map(function(s) { return s.score; });
+  var html = '';
+  r.data.forEach(function(d) {
+    var matched = d.numbers.filter(function(n) { return myNums.indexOf(n) >= 0; }).length;
+    var ballsHTML = '';
+    d.numbers.forEach(function(n) {
+      var cls = myNums.indexOf(n) >= 0 ? 'score-ball-match' : 'score-ball-muted';
+      ballsHTML += ballHTML(n, cls);
+    });
+    html += '<div class="draw-card">' +
+      '<div class="flex items-center justify-between mb-md">' +
+      '<h3 style="font-family:var(--f-display);font-size:1.5rem">' + fmtMonth(d.month) + '</h3>' +
+      '<div class="flex gap-xs items-center"><span class="badge badge-jade">Published</span>' +
+      (matched >= 3 ? '<span class="badge badge-gold">' + matched + ' Match!</span>' : '') +
+      '</div></div>' +
+      '<div class="draw-balls">' + ballsHTML + '</div>' +
+      '<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-top:1rem">' +
+      '<div class="stat-box"><div class="stat-label">Jackpot (5M)</div><div class="stat-value" style="font-size:1.15rem">' + money(d.match5_amount) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">4-Match</div><div class="stat-value" style="font-size:1.15rem">' + money(d.match4_amount) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">3-Match</div><div class="stat-value" style="font-size:1.15rem">' + money(d.match3_amount) + '</div></div>' +
+      '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── Winnings ──────────────────────────────────────────────────────────────────
+async function loadWinningsCount() {
+  var r = await supabase.from('draw_winners').select('prize_amount').eq('user_id', SESSION.user.id);
+  var total = (r.data || []).reduce(function(s, w) { return s + (w.prize_amount || 0); }, 0);
+  document.getElementById('ov-total-won').textContent = money(total);
+}
+
+async function loadWinnings() {
+  var el = document.getElementById('wins-list');
+  var r = await supabase.from('draw_winners').select('*')
+    .eq('user_id', SESSION.user.id).order('created_at', { ascending: false });
+  if (!r.data || !r.data.length) {
+    el.innerHTML = '<div class="card text-center" style="padding:3rem">' +
+      '<div style="font-size:3rem;margin-bottom:1rem">&#127919;</div>' +
+      '<h3>No winnings yet</h3>' +
+      '<p class="text-sm mt-sm">Keep your scores updated every month - your numbers are your tickets!</p>' +
+      '</div>';
+    return;
+  }
+  var html = '';
+  r.data.forEach(function(w) {
+    var statusClass = w.status === 'paid' ? 'badge-jade' :
+                      w.status === 'verified' ? 'badge-sky' :
+                      w.status === 'rejected' ? 'badge-ember' : 'badge-muted';
+    html += '<div class="win-card">' +
+      '<div class="flex items-center justify-between mb-md">' +
+      '<div><span class="badge badge-gold mb-xs">' + w.match_count + '-Number Match &#127881;</span>' +
+      '<div style="font-family:var(--f-display);font-size:2rem;font-weight:700">' + money(w.prize_amount) + '</div></div>' +
+      '<span class="badge ' + statusClass + '">' + w.status + '</span></div>' +
+      (w.status === 'pending' && !w.proof_url ?
+        '<p class="text-sm text-muted mb-sm">Upload proof of your scores to claim this prize.</p>' +
+        '<button class="btn btn-gold btn-sm" onclick="openProof(\'' + w.id + '\')">Upload Proof</button>' : '') +
+      (w.proof_url ? '<p class="text-xs text-jade mt-sm">&#10003; Proof submitted - awaiting admin verification</p>' : '') +
+      (w.rejection_reason ? '<p class="text-xs text-ember mt-sm">&#10007; Rejected: ' + w.rejection_reason + '</p>' : '') +
+      (w.paid_at ? '<p class="text-xs text-jade mt-sm">&#10003; Payment sent on ' + fmtDate(w.paid_at) + '</p>' : '') +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+window.openProof = function(id) {
+  document.getElementById('proof-win-id').value = id;
+  document.getElementById('proof-url-inp').value = '';
+  openOverlay('proof-overlay');
+};
+
+window.submitProof = async function() {
+  var id  = document.getElementById('proof-win-id').value;
+  var url = document.getElementById('proof-url-inp').value.trim();
+  if (!url) { toast('Enter a valid URL', 'error'); return; }
+  var r = await supabase.from('draw_winners').update({
+    proof_url: url, proof_submitted_at: new Date().toISOString()
+  }).eq('id', id).eq('user_id', SESSION.user.id);
+  if (r.error) { toast(r.error.message, 'error'); return; }
+  toast('Proof submitted! Admin will review shortly.', 'success');
+  window.closeOverlay('proof-overlay');
+  loadWinnings();
+};
+
+// ── Charity ───────────────────────────────────────────────────────────────────
+async function loadCharities() {
+  var r = await supabase.from('charities').select('*').eq('active', true)
+    .order('featured', { ascending: false });
+  CHARITIES = r.data || [];
+  var html = '';
+  CHARITIES.forEach(function(c) {
+    html += '<div class="charity-pick ' + (SEL_CHARITY === c.id ? 'selected' : '') + '"' +
+      ' onclick="pickCharity(\'' + c.id + '\',this)" id="cp-' + c.id + '">' +
+      '<img src="' + (c.image_url || '') + '" alt="' + c.name + '" style="width:52px;height:52px;border-radius:var(--r);object-fit:cover;flex-shrink:0"/>' +
+      '<div><div class="font-bold">' + c.name + '</div>' +
+      '<div class="text-xs text-muted mt-xs">' + (c.description || '').slice(0, 100) + '...</div>' +
+      '<div class="flex gap-xs mt-sm flex-wrap">' +
+      (c.featured ? '<span class="badge badge-gold">Featured</span>' : '') +
+      '<span class="text-xs text-jade">' + money(c.total_received) + ' raised</span>' +
+      '</div></div></div>';
+  });
+  document.getElementById('ch-list').innerHTML = html || '<p class="text-sm text-muted">No charities found.</p>';
+}
+
+window.pickCharity = function(id, el) {
+  document.querySelectorAll('.charity-pick').forEach(function(c) { c.classList.remove('selected'); });
+  el.closest('.charity-pick').classList.add('selected');
+  SEL_CHARITY = id;
+};
+
+window.saveCharitySelection = async function() {
+  if (!SEL_CHARITY) { toast('Select a charity first', 'error'); return; }
+  var r = await supabase.from('profiles').update({ charity_id: SEL_CHARITY }).eq('id', SESSION.user.id);
+  if (r.error) { toast(r.error.message, 'error'); return; }
+  USER.charity_id = SEL_CHARITY;
+  toast('Charity saved!', 'success');
+};
+
+window.onPctChange = function(val) {
+  document.getElementById('ch-pct-display').textContent = val + '%';
+  updateCharityHint(Number(val), USER.subscription && USER.subscription.plan);
+};
+
+function updateCharityHint(pct, plan) {
+  var base = plan === 'yearly' ? Math.round(8999 / 12) : 999;
+  var est  = Math.round(base * pct / 100);
+  document.getElementById('ch-amount-hint').textContent = 'approx ' + money(est) + ' / month to charity';
+  document.getElementById('ov-charity-est').textContent = money(est);
+}
+
+window.saveCharityPct = async function() {
+  var pct = Number(document.getElementById('ch-pct-range').value);
+  var r = await supabase.from('profiles').update({ charity_percent: pct }).eq('id', SESSION.user.id);
+  if (r.error) { toast(r.error.message, 'error'); return; }
+  USER.charity_percent = pct;
+  toast('Contribution updated!', 'success');
+};
+
+// ── Subscription ──────────────────────────────────────────────────────────────
+async function loadSubscription() {
+  var sr  = await supabase.from('subscriptions').select('*').eq('user_id', SESSION.user.id).maybeSingle();
+  var sub = sr.data;
+  var active = sub && sub.status === 'active';
+
+  document.getElementById('sub-status-card').innerHTML =
+    '<div class="flex items-center gap-sm mb-md"><h3>Current Subscription</h3>' +
+    '<span class="badge ' + (active ? 'badge-jade' : sub && sub.status === 'lapsed' ? 'badge-amber' : 'badge-ember') + '">' +
+    (sub ? sub.status : 'inactive') + '</span></div>' +
+    (active ?
+      '<div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">' +
+      '<div class="stat-box"><div class="stat-label">Plan</div><div class="stat-value" style="font-size:1.2rem;text-transform:capitalize">' + sub.plan + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Amount</div><div class="stat-value" style="font-size:1.2rem">' + money(sub.amount_pence) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Renews</div><div class="stat-value" style="font-size:1rem">' + fmtDate(sub.end_date) + '</div></div>' +
+      '</div>' +
+      (sub.cancel_at_period_end ? '<p class="text-sm mt-md" style="color:var(--amber)">Your subscription will not renew after the current period.</p>' : '')
+      :
+      '<p class="text-muted text-sm">No active subscription. Choose a plan below to join the monthly draws.</p>');
+
+  document.getElementById('sub-plans-wrap').innerHTML =
+    '<h3 class="mb-md">' + (active ? 'Change Plan' : 'Choose a Plan') + '</h3>' +
+    '<div class="grid-2" style="max-width:620px">' +
+    '<div class="plan-option" id="po-monthly" onclick="selSubPlan(\'monthly\')">' +
+    '<div class="badge badge-muted mb-sm">Monthly</div>' +
+    '<div style="font-family:var(--f-display);font-size:2.25rem;font-weight:700">&#163;9.99</div>' +
+    '<div class="text-xs text-muted mb-md">per month - cancel anytime</div>' +
+    '<p class="text-sm text-muted">Monthly draw entry, score tracking, charity contribution</p></div>' +
+    '<div class="plan-option" id="po-yearly" onclick="selSubPlan(\'yearly\')" style="border-color:rgba(201,168,76,.2)">' +
+    '<div class="badge badge-gold mb-sm">Yearly - Save 25%</div>' +
+    '<div style="font-family:var(--f-display);font-size:2.25rem;font-weight:700">&#163;89.99</div>' +
+    '<div class="text-xs text-muted mb-md">per year - just &#163;7.50/month</div>' +
+    '<p class="text-sm text-muted">All monthly benefits, 12 draw entries, save &#163;29.89</p></div></div>';
+
+  document.getElementById('sub-actions').innerHTML =
+    '<a href="/pages/subscribe.html" class="btn btn-gold btn-lg">' +
+    (active ? 'Change Plan' : 'Subscribe Now') + '</a>' +
+    (active ? '<button class="btn btn-ghost" onclick="cancelSub()">Cancel Subscription</button>' : '');
+}
+
+var selSubPlanChoice = null;
+window.selSubPlan = function(p) {
+  selSubPlanChoice = p;
+  document.getElementById('po-monthly').classList.toggle('selected', p === 'monthly');
+  document.getElementById('po-yearly').classList.toggle('selected', p === 'yearly');
+};
+
+window.cancelSub = async function() {
+  if (!confirm('Cancel your subscription? You keep access until your renewal date.')) return;
+  var r = await supabase.from('subscriptions').update({ status: 'cancelled' })
+    .eq('user_id', SESSION.user.id).eq('status', 'active');
+  if (r.error) { toast(r.error.message, 'error'); return; }
+  toast('Subscription cancelled.', 'info');
+  USER.subscription = null;
+  await loadSubscription();
+};
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+window.saveProfile = async function() {
+  var name = document.getElementById('pf-name').value.trim();
+  if (!name) { toast('Name cannot be empty', 'error'); return; }
+  var r = await supabase.from('profiles').update({ name: name }).eq('id', SESSION.user.id);
+  if (r.error) { toast(r.error.message, 'error'); return; }
+  document.getElementById('ov-name').textContent = name;
+  USER.name = name;
+  toast('Profile updated!', 'success');
+};
+
+window.sendPassReset = async function() {
+  await supabase.auth.resetPasswordForEmail(USER.email);
+  toast('Password reset email sent!', 'success');
+};
+</script>
+</body>
+</html>
+

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Subscription Confirmed — Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+body{display:flex;flex-direction:column;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:2rem;background:radial-gradient(ellipse 60% 50% at 50% 40%,rgba(45,212,160,.07),transparent 65%),var(--bg)}
+.success-icon{width:5rem;height:5rem;border-radius:50%;background:var(--jade-g);border:2px solid rgba(45,212,160,.3);display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 2rem;animation:popIn .5s ease}
+.next-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:2rem 0;max-width:600px;text-align:left}
+.next-step{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem}
+.next-step-num{width:1.75rem;height:1.75rem;border-radius:50%;background:rgba(201,168,76,.15);color:var(--gold);font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<nav class="nav" style="position:fixed;top:0;left:0;right:0"><a href="/" class="nav-brand">Par<em>4</em>Good</a></nav>
+<div style="margin-top:var(--nav-h)">
+  <div class="success-icon">✓</div>
+  <h1 class="display-md">You're subscribed!</h1>
+  <p class="mt-sm" style="max-width:440px;margin:.75rem auto 0">Your payment was successful. Welcome to Par4Good — your charity contribution starts this month.</p>
+
+  <div class="next-steps">
+    <div class="next-step"><div class="next-step-num">1</div><h3>Log your scores</h3><p class="text-xs mt-xs">Go to dashboard → My Scores and add your last 5 Stableford results.</p></div>
+    <div class="next-step"><div class="next-step-num">2</div><h3>Choose a charity</h3><p class="text-xs mt-xs">Pick which charity receives your monthly contribution from the Charity panel.</p></div>
+    <div class="next-step"><div class="next-step-num">3</div><h3>Watch for draws</h3><p class="text-xs mt-xs">Monthly draws are published on the dashboard. Match your scores to win!</p></div>
+  </div>
+
+  <a href="/pages/dashboard.html" class="btn btn-gold btn-lg">Go to Dashboard →</a>
+</div>
+<div id="toasts"></div>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+// Verify session is valid
+const {data:{session}} = await supabase.auth.getSession();
+if(!session) window.location.href='/pages/login.html';
+</script>
+</body>
+</html>

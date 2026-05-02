@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Par4Good — Play Golf. Give Back. Win Together.</title>
+  <meta name="description"
+    content="Subscribe, log your Stableford scores, enter monthly prize draws and automatically donate to your chosen charity. Golf with purpose." />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    /* ── Hero ── */
+    .hero {
+      min-height: 92vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 65% 55% at 70% 30%, rgba(201, 168, 76, .09), transparent 65%),
+        radial-gradient(ellipse 45% 50% at 15% 80%, rgba(45, 212, 160, .05), transparent 60%);
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px);
+      background-size: 80px 80px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+    }
+
+    .hero .container {
+      position: relative;
+      z-index: 1;
+      padding-top: 5rem;
+      padding-bottom: 5rem
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      background: rgba(201, 168, 76, .08);
+      border: 1px solid rgba(201, 168, 76, .2);
+      color: var(--gold-l);
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      padding: .3rem 1rem;
+      border-radius: 999px;
+      margin-bottom: 1.75rem
+    }
+
+    .hero h1 {
+      max-width: 700px;
+      margin-bottom: 1.3rem
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      max-width: 540px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 4rem
+    }
+
+    .impact-row {
+      display: flex;
+      gap: 2.75rem;
+      flex-wrap: wrap;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border)
+    }
+
+    .impact-num {
+      font-family: var(--f-display);
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text)
+    }
+
+    .impact-num em {
+      color: var(--gold);
+      font-style: normal
+    }
+
+    .impact-label {
+      font-size: .76rem;
+      color: var(--muted);
+      margin-top: .2rem
+    }
+
+    /* ── Ticker ── */
+    .ticker {
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      padding: 1.1rem 0
+    }
+
+    .ticker-inner {
+      display: flex;
+      gap: 3rem;
+      width: max-content;
+      animation: tickerScroll 35s linear infinite;
+      white-space: nowrap
+    }
+
+    .ticker-inner span {
+      font-size: .76rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .12em
+    }
+
+    .ticker-inner em {
+      color: var(--gold);
+      font-style: normal
+    }
+
+    @keyframes tickerScroll {
+      from {
+        transform: translateX(0)
+      }
+
+      to {
+        transform: translateX(-50%)
+      }
+    }
+
+    /* ── Steps ── */
+    .step-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 2.25rem 1.75rem;
+      position: relative;
+      overflow: hidden
+    }
+
+    .step-card::after {
+      content: attr(data-n);
+      position: absolute;
+      top: -1rem;
+      right: .75rem;
+      font-family: var(--f-display);
+      font-size: 6rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, .025);
+      line-height: 1;
+      pointer-events: none
+    }
+
+    .step-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      background: rgba(201, 168, 76, .1);
+      border: 1px solid rgba(201, 168, 76, .2);
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1.25rem
+    }
+
+    /* ── Draw preview ── */
+    .draw-preview {
+      background: var(--panel);
+      border: 1px solid rgba(201, 168, 76, .2);
+      border-radius: var(--r-xl);
+      padding: 2rem;
+      box-shadow: var(--glow)
+    }
+
+    .draw-balls {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 1.5rem
+    }
+
+    /* ── Charity spotlight ── */
+    .charity-spotlight {
+      background: linear-gradient(135deg, var(--bg2), var(--panel));
+      border: 1px solid rgba(201, 168, 76, .18);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      box-shadow: var(--glow)
+    }
+
+    .charity-spotlight img {
+      height: 100%;
+      min-height: 300px;
+      object-fit: cover;
+      width: 100%
+    }
+
+    .charity-body {
+      padding: 2.75rem
+    }
+
+    /* ── Pool breakdown ── */
+    .pool-tier {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 2rem;
+      text-align: center
+    }
+
+    .pool-tier-pct {
+      font-family: var(--f-display);
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: .5rem
+    }
+
+    /* ── Pricing ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 700px;
+      margin: 0 auto
+    }
+
+    /* ── CTA band ── */
+    .cta-band {
+      background: linear-gradient(135deg, rgba(201, 168, 76, .08), rgba(45, 212, 160, .04));
+      border-top: 1px solid rgba(201, 168, 76, .15);
+      border-bottom: 1px solid rgba(201, 168, 76, .15);
+      padding: 5rem 0;
+      text-align: center
+    }
+
+    @media(max-width:700px) {
+      .charity-spotlight {
+        grid-template-columns: 1fr
+      }
+
+      .charity-spotlight img {
+        height: 220px
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="/" class="nav-brand">Par<em>4</em>Good</a>
+    <div class="nav-right" id="nav-right">
+      <a href="/pages/charities.html" class="nav-link hide-sm">Charities</a>
+      <a href="/pages/how-it-works.html" class="nav-link hide-sm">How It Works</a>
+      <a href="/pages/login.html" class="btn btn-ghost btn-sm">Sign In</a>
+      <a href="/pages/login.html#register" class="btn btn-gold btn-sm">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="container anim-up">
+      <div class="hero-eyebrow">⛳ Golf · Charity · Monthly Draws</div>
+      <h1 class="display-xl">
+        Play your round.<br><span class="gold-text"><em>Change</em> someone's world.</span>
+      </h1>
+      <p class="hero-sub text-muted">
+        Subscribe, enter your last five Stableford scores, and join a monthly prize draw —
+        while a guaranteed portion of every fee goes straight to the charity <em style="color:var(--text)">you</em>
+        choose.
+      </p>
+      <div class="hero-btns">
+        <a href="/pages/subscribe.html" class="btn btn-gold btn-xl" id="hero-cta">Start for £9.99 / month →</a>
+        <a href="/pages/how-it-works.html" class="btn btn-ghost btn-xl">How it works</a>
+      </div>
+      <div class="impact-row">
+        <div>
+          <div class="impact-num" id="stat-members"><em>—</em></div>
+          <div class="impact-label">Active Members</div>
+        </div>
+        <div>
+          <div class="impact-num" id="stat-charity"><em>—</em></div>
+          <div class="impact-label">Raised for Charity</div>
+        </div>
+        <div>
+          <div class="impact-num" id="stat-pool"><em>—</em></div>
+          <div class="impact-label">Current Jackpot</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-inner">
+      <span>Monthly Prize Draws</span><em>◆</em><span>Stableford Score Tracking</span><em>◆</em>
+      <span>Charity of Your Choice</span><em>◆</em><span>Jackpot Rollover</span><em>◆</em>
+      <span>5-Number Match</span><em>◆</em><span>Winner Verified Payouts</span><em>◆</em>
+      <span>Admin Draw Engine</span><em>◆</em><span>Independent Donations</span><em>◆</em>
+      <span>Monthly Prize Draws</span><em>◆</em><span>Stableford Score Tracking</span><em>◆</em>
+      <span>Charity of Your Choice</span><em>◆</em><span>Jackpot Rollover</span><em>◆</em>
+      <span>5-Number Match</span><em>◆</em><span>Winner Verified Payouts</span><em>◆</em>
+      <span>Admin Draw Engine</span><em>◆</em><span>Independent Donations</span><em>◆</em>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" style="background:var(--bg2)" id="how-it-works">
+    <div class="container">
+      <div class="text-center mb-lg reveal">
+        <div class="section-label">How It Works</div>
+        <h2 class="display-lg">Four steps. <span class="gold-text">Endless impact.</span></h2>
+      </div>
+      <div class="grid-4">
+        <div class="step-card reveal anim-up-1" data-n="1">
+          <div class="step-icon">💳</div>
+          <h3>Subscribe</h3>
+          <p class="text-sm mt-sm">Choose monthly (£9.99) or yearly (£89.99). Your fee fuels the prize pool and funds
+            your chosen charity — every month, automatically.</p>
+        </div>
+        <div class="step-card reveal anim-up-2" data-n="2">
+          <div class="step-icon">⛳</div>
+          <h3>Log Scores</h3>
+          <p class="text-sm mt-sm">Enter your last 5 Stableford scores (1–45). Your numbers become your draw tickets —
+            adding a 6th removes the oldest automatically.</p>
+        </div>
+        <div class="step-card reveal anim-up-3" data-n="3">
+          <div class="step-icon">🎯</div>
+          <h3>Monthly Draw</h3>
+          <p class="text-sm mt-sm">Admin runs a 5-number draw each month using our random or algorithmic engine. Match
+            3, 4, or all 5 of your scores to win.</p>
+        </div>
+        <div class="step-card reveal anim-up-4" data-n="4">
+          <div class="step-icon">🏆</div>
+          <h3>Win & Give</h3>
+          <p class="text-sm mt-sm">Prize split equally among all matching players. Jackpot rolls over until claimed.
+            Your charity gets paid regardless — every single month.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST DRAW -->
+  <section class="section">
+    <div class="container">
+      <div class="flex items-center justify-between mb-lg">
+        <h2 class="reveal">Latest Draw Results</h2>
+        <a href="/pages/dashboard.html" class="btn btn-ghost btn-sm">All Draws →</a>
+      </div>
+      <div id="draw-section">
+        <div class="skel" style="height:210px;border-radius:var(--r-xl)"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHARITY SPOTLIGHT -->
+  <section class="section" style="background:var(--bg2)">
+    <div class="container">
+      <div class="text-center mb-lg reveal">
+        <div class="section-label">Featured Charity</div>
+        <h2 class="display-lg">Golf that <span class="gold-text">gives back</span></h2>
+      </div>
+      <div id="charity-section">
+        <div class="skel" style="height:300px;border-radius:var(--r-xl)"></div>
+      </div>
+      <div class="text-center mt-lg">
+        <a href="/pages/charities.html" class="btn btn-ghost btn-lg">Browse All Charities →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIZE POOL BREAKDOWN -->
+  <section class="section">
+    <div class="container">
+      <div class="text-center mb-lg reveal">
+        <div class="section-label">Prize Pool</div>
+        <h2 class="display-lg">Transparent by design</h2>
+        <p class="mt-sm" style="max-width:520px;margin:0.75rem auto 0">50% of every subscription goes to the prize pool.
+          Here's how it's split.</p>
+      </div>
+      <div class="grid-3">
+        <div class="pool-tier card-gold reveal">
+          <div class="pool-tier-pct gold-text">40%</div>
+          <h3>Jackpot — 5 Match</h3>
+          <p class="text-sm mt-sm">Rolls over each month until a player matches all five of their Stableford scores to
+            the draw numbers. The biggest prize.</p>
+          <span class="badge badge-gold mt-md">Rollover if unclaimed</span>
+        </div>
+        <div class="pool-tier card reveal anim-up-2">
+          <div class="pool-tier-pct" style="color:var(--text)">35%</div>
+          <h3>4-Number Match</h3>
+          <p class="text-sm mt-sm">Split equally among all players who match exactly four of their scores. Pays out
+            monthly regardless of a jackpot winner.</p>
+          <span class="badge badge-muted mt-md">Monthly payout</span>
+        </div>
+        <div class="pool-tier card reveal anim-up-3">
+          <div class="pool-tier-pct" style="color:var(--text)">25%</div>
+          <h3>3-Number Match</h3>
+          <p class="text-sm mt-sm">The most achievable win tier. Match any three of your scores to share this pool with
+            all other 3-match players.</p>
+          <span class="badge badge-muted mt-md">Monthly payout</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" style="background:var(--bg2)" id="pricing">
+    <div class="container">
+      <div class="text-center mb-lg reveal">
+        <div class="section-label">Pricing</div>
+        <h2 class="display-lg">Simple. Honest. Fair.</h2>
+        <p class="mt-sm" style="max-width:480px;margin:.75rem auto 0">No hidden fees. Pick monthly or lock in the year
+          and save 25%.</p>
+      </div>
+      <div class="pricing-grid" id="pricing-grid">
+        <div class="skel" style="height:400px;border-radius:var(--r-xl)"></div>
+        <div class="skel" style="height:400px;border-radius:var(--r-xl)"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <div class="cta-band reveal">
+    <div class="container">
+      <div class="section-label" style="justify-content:center">Start today</div>
+      <h2 class="display-lg mt-sm">Ready to play with <span class="gold-text">purpose?</span></h2>
+      <p class="mt-sm" style="max-width:440px;margin:.75rem auto 2rem">Join thousands of golfers making every round
+        count — for themselves and the causes they care about.</p>
+      <a href="/pages/subscribe.html" class="btn btn-gold btn-xl" id="bottom-cta">Get Started — £9.99 / month</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <a href="/" class="nav-brand">Par<em style="color:var(--gold);font-style:normal">4</em>Good</a>
+      <div class="footer-links">
+        <a href="/pages/charities.html">Charities</a>
+        <a href="/pages/how-it-works.html">How It Works</a>
+        <a href="/pages/subscribe.html">Pricing</a>
+        <a href="/pages/dashboard.html">Dashboard</a>
+      </div>
+      <p class="text-xs text-faint w-full mt-sm">© 2026 Par4Good — a Digital Heroes project. Play fair. Give back. Win
+        together.</p>
+    </div>
+  </footer>
+
+  <div id="toasts"></div>
+
+  <script type="module">
+    import { supabase, fmt£, fmtMonth } from '/js/supabase-client.js';
+    import { renderNav } from '/js/app.js';
+
+    renderNav('#nav-right');
+
+    // Redirect CTAs if logged in
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        document.getElementById('hero-cta').href = '/pages/dashboard.html#subscription';
+        document.getElementById('hero-cta').textContent = 'Go to Dashboard →';
+        document.getElementById('bottom-cta').href = '/pages/dashboard.html#subscription';
+      }
+    })();
+
+    // Scroll reveal
+    const obs = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }) }, { threshold: .12 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    // Latest draw
+    async function loadDraw() {
+      const { data } = await supabase.from('draws').select('*').eq('status', 'published').order('month', { ascending: false }).limit(1);
+      const el = document.getElementById('draw-section');
+      if (!data?.length) { el.innerHTML = `<div class="card text-center" style="padding:3rem"><p class="text-muted">First draw coming soon — subscribe now to be entered!</p></div>`; return; }
+      const d = data[0];
+      el.innerHTML = `<div class="draw-preview">
+    <div class="flex items-center justify-between mb-md">
+      <div><span class="badge badge-jade mb-xs">Published</span><h2 style="font-family:var(--f-display);font-size:1.75rem">${fmtMonth(d.month)} Draw</h2></div>
+      <div class="text-right hide-sm"><div class="text-xs text-muted">Jackpot</div><div style="font-family:var(--f-display);font-size:1.9rem;font-weight:700;color:var(--gold)">${fmt(d.match5_amount)
+    }</div >
+  </div >
+    </div >
+    <div class="draw-balls">${d.numbers.map(n=>`<div class="draw-ball">${n}</div>`).join('')}</div>
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-box"><div class="stat-label">Jackpot</div><div class="stat-value" style="font-size:1.3rem">${fmt(d.match5_amount)}</div></div>
+      <div class="stat-box"><div class="stat-label">4 Match</div><div class="stat-value" style="font-size:1.3rem">${fmt(d.match4_amount)}</div></div>
+      <div class="stat-box"><div class="stat-label">3 Match</div><div class="stat-value" style="font-size:1.3rem">${fmt(d.match3_amount)}</div></div>
+    </div>
+  </div > `;
+  document.getElementById('stat-pool').innerHTML=`< em > ${ fmt£(d.match5_amount) }</em > `;
+}
+
+// Featured charity
+async function loadCharity(){
+  const {data}=await supabase.from('charities').select('*').eq('featured',true).eq('active',true).limit(1).maybeSingle();
+  const el=document.getElementById('charity-section');
+  if(!data){el.innerHTML='';return;}
+  el.innerHTML=`< div class="charity-spotlight" >
+  <img src="${data.image_url}" alt="${data.name}" loading="lazy"/>
+    <div class="charity-body">
+      <span class="badge badge-jade mb-md">⭐ Featured Charity</span>
+      <h2 style="font-family:var(--f-display);font-size:2rem;margin-bottom:.75rem">${data.name}</h2>
+      <p style="line-height:1.8">${data.description}</p>
+      ${data.events?.length?`<div class="mt-md">
+        <div class="text-xs text-muted mb-xs" style="text-transform:uppercase;letter-spacing:.1em">Upcoming Events</div>
+        ${data.events.slice(0,2).map(e=>`<div class="flex items-center gap-sm mt-xs"><span class="badge badge-gold">${e.date}</span><span class="text-sm">${e.name} · ${e.location}</span></div>`).join('')}
+      </div>`:''}
+      <div class="flex items-center gap-md mt-lg">
+        <a href="/pages/charities.html" class="btn btn-gold btn-sm">Learn More →</a>
+        <span class="text-xs text-jade font-bold">${fmt(data.total_received)} raised to date</span>
+      </div>
+    </div>
+  </div > `;
+}
+
+// Stats
+async function loadStats(){
+  const {count}=await supabase.from('subscriptions').select('*',{count:'exact',head:true}).eq('status','active');
+  if(count)document.getElementById('stat-members').innerHTML=`< em > ${ count.toLocaleString() }</em > `;
+  const {data:payments}=await supabase.from('payments').select('amount_pence').eq('type','charity_auto');
+  const total=(payments||[]).reduce((s,p)=>s+(p.amount_pence||0),0);
+  if(total)document.getElementById('stat-charity').innerHTML=`< em > ${ fmt£(total) }</em > `;
+}
+
+// Pricing
+document.getElementById('pricing-grid').innerHTML=`
+      < div class="plan-card card reveal" >
+    <div class="badge badge-muted mb-md">Monthly</div>
+    <div class="plan-price">£9<span style="font-size:1.5rem">.99</span></div>
+    <div class="text-muted text-sm mb-md">per month · cancel anytime</div>
+    <ul class="plan-features">
+      <li>Monthly prize draw entry</li><li>Score tracking (up to 5)</li>
+      <li>Charity of your choice</li><li>Min. 10% donated monthly</li>
+      <li>Winner verification & payout</li>
+    </ul>
+    <a href="/pages/subscribe.html?plan=monthly" class="btn btn-ghost btn-full">Start Monthly</a>
+  </div >
+      <div class="plan-card card-gold reveal anim-up-2" style="position:relative">
+        <div style="position:absolute;top:-.65rem;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold-l),var(--gold));color:#080a0e;font-size:.7rem;font-weight:800;padding:.2rem .9rem;border-radius:999px;white-space:nowrap;text-transform:uppercase;letter-spacing:.08em">Best Value — Save 25%</div>
+        <div class="badge badge-gold mb-md">Yearly</div>
+        <div class="plan-price">£89<span style="font-size:1.5rem">.99</span></div>
+        <div class="text-muted text-sm mb-md">per year · just £7.50/month</div>
+        <ul class="plan-features">
+          <li>Everything in Monthly</li><li>12 draw entries — consecutive</li>
+          <li>Priority winner processing</li><li>Higher charity impact</li>
+          <li>Save £29.89 vs monthly</li>
+        </ul>
+        <a href="/pages/subscribe.html?plan=yearly" class="btn btn-gold btn-full">Start Yearly</a>
+      </div>`;
+
+loadDraw();loadCharity();loadStats();
+  </script>
+</body>
+
+</html>

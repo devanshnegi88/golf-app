@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sign In — Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+body{display:flex;flex-direction:column;min-height:100vh;background:radial-gradient(ellipse 60% 50% at 75% 20%,rgba(201,168,76,.07),transparent 60%),var(--bg)}
+.auth-page{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+.auth-wrap{width:100%;max-width:440px}
+.auth-brand{text-align:center;margin-bottom:2rem}
+.auth-brand a{font-family:var(--f-display);font-size:2.5rem;font-weight:800;color:var(--text)}
+.auth-brand a em{color:var(--gold);font-style:normal}
+.auth-brand p{font-size:.88rem;color:var(--muted);margin-top:.35rem}
+.auth-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:2.25rem;box-shadow:var(--shadow-lg)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg3);border-radius:var(--r);padding:.25rem;gap:.25rem;margin-bottom:2rem}
+.auth-tab{padding:.6rem;text-align:center;border-radius:calc(var(--r) - 2px);font-size:.88rem;font-weight:600;color:var(--muted);cursor:pointer;background:none;border:none;transition:all .2s}
+.auth-tab.active{background:var(--panel2);color:var(--text)}
+.err-box{background:var(--ember-g);border:1px solid rgba(240,82,82,.25);border-radius:var(--r);padding:.75rem 1rem;font-size:.84rem;color:var(--ember);margin-bottom:1rem;display:none}
+.err-box.show{display:block}
+.auth-foot{text-align:center;margin-top:1.5rem;font-size:.82rem;color:var(--muted)}
+.auth-foot a{color:var(--gold)}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="/" class="nav-brand">Par<em>4</em>Good</a><div class="nav-right"><a href="/" class="nav-link">← Home</a></div></nav>
+
+<div class="auth-page">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <a href="/">Par<em>4</em>Good</a>
+      <p>Golf meets giving — play with purpose.</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-sign-btn" onclick="showTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-reg-btn" onclick="showTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="pane-login">
+        <div class="err-box" id="login-err"></div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="login-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="login-pw" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button class="btn btn-gold btn-full mt-sm" id="login-btn" onclick="doLogin()">Sign In</button>
+        <div class="auth-foot">No account? <a href="#" onclick="showTab('register')">Create one free</a></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="pane-reg" class="hidden">
+        <div class="err-box" id="reg-err"></div>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="reg-name" placeholder="Your full name" autocomplete="name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="reg-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="reg-pw" placeholder="Min 8 characters" autocomplete="new-password"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" class="form-control" id="reg-confirm" placeholder="Repeat password" autocomplete="new-password"/>
+        </div>
+        <button class="btn btn-gold btn-full mt-sm" id="reg-btn" onclick="doRegister()">Create Account</button>
+        <div class="auth-foot">Already have an account? <a href="#" onclick="showTab('login')">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+import { toast } from '/js/app.js';
+
+// Already logged in?
+const {data:{session}} = await supabase.auth.getSession();
+if(session) window.location.href='/pages/dashboard.html';
+
+// Open register tab if hash says so
+if(location.hash==='#register') showTab('register');
+
+window.showTab = function(tab){
+  document.getElementById('pane-login').classList.toggle('hidden',tab!=='login');
+  document.getElementById('pane-reg').classList.toggle('hidden',tab!=='register');
+  document.getElementById('tab-sign-btn').classList.toggle('active',tab==='login');
+  document.getElementById('tab-reg-btn').classList.toggle('active',tab==='register');
+};
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const isReg=!document.getElementById('pane-reg').classList.contains('hidden');
+  isReg?doRegister():doLogin();
+});
+
+window.doLogin = async function(){
+  const email=document.getElementById('login-email').value.trim();
+  const pw=document.getElementById('login-pw').value;
+  const err=document.getElementById('login-err');
+  const btn=document.getElementById('login-btn');
+  err.classList.remove('show');
+  if(!email||!pw){err.textContent='Email and password are required.';err.classList.add('show');return;}
+  btn.classList.add('loading');btn.disabled=true;
+  const {data,error}=await supabase.auth.signInWithPassword({email,password:pw});
+  btn.classList.remove('loading');btn.disabled=false;
+  if(error){err.textContent=error.message;err.classList.add('show');return;}
+  const {data:p}=await supabase.from('profiles').select('role').eq('id',data.user.id).single();
+  toast('Welcome back!','success',1500);
+  setTimeout(()=>{window.location.href=p?.role==='admin'?'/pages/admin.html':'/pages/dashboard.html'},600);
+};
+
+window.doRegister = async function(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pw=document.getElementById('reg-pw').value;
+  const confirm=document.getElementById('reg-confirm').value;
+  const err=document.getElementById('reg-err');
+  const btn=document.getElementById('reg-btn');
+  err.classList.remove('show');
+  if(!name||!email||!pw){err.textContent='All fields are required.';err.classList.add('show');return;}
+  if(pw.length<8){err.textContent='Password must be at least 8 characters.';err.classList.add('show');return;}
+  if(pw!==confirm){err.textContent='Passwords do not match.';err.classList.add('show');return;}
+  btn.classList.add('loading');btn.disabled=true;
+  const {error}=await supabase.auth.signUp({email,password:pw,options:{data:{name}}});
+  btn.classList.remove('loading');btn.disabled=false;
+  if(error){err.textContent=error.message;err.classList.add('show');return;}
+  toast('Account created! Redirecting…','success',2000);
+  setTimeout(()=>window.location.href='/pages/subscribe.html',1200);
+};
+</script>
+</body>
+</html>

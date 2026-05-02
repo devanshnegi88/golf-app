@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin — Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+.admin-chip{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#080a0e;font-size:.65rem;font-weight:800;padding:.12rem .55rem;border-radius:4px;text-transform:uppercase;letter-spacing:.08em;margin-left:.5rem}
+.tbl-actions{display:flex;gap:.3rem;flex-wrap:nowrap}
+.draw-preview-nums{display:flex;gap:.4rem;flex-wrap:wrap}
+.mini-ball{width:2rem;height:2rem;border-radius:50%;background:var(--panel2);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-brand">Par<em>4</em>Good <span class="admin-chip">Admin</span></a>
+  <div class="nav-right">
+    <a href="/pages/dashboard.html" class="nav-link hide-sm">Player View</a>
+    <button onclick="doSignOut()" class="btn btn-ghost btn-sm">Sign Out</button>
+  </div>
+</nav>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sb-section">Overview</div>
+    <button class="sb-item active" data-nav="analytics" onclick="go('analytics')"><span class="sb-icon">📊</span>Analytics</button>
+    <div class="sb-section">Manage</div>
+    <button class="sb-item" data-nav="users" onclick="go('users')"><span class="sb-icon">👥</span>Users</button>
+    <button class="sb-item" data-nav="draws" onclick="go('draws')"><span class="sb-icon">🎯</span>Draws</button>
+    <button class="sb-item" data-nav="winners" onclick="go('winners')"><span class="sb-icon">🏆</span>Winners</button>
+    <button class="sb-item" data-nav="charities" onclick="go('charities')"><span class="sb-icon">💚</span>Charities</button>
+    <div class="sb-foot"><button class="sb-item" onclick="doSignOut()"><span class="sb-icon">↩</span>Sign Out</button></div>
+  </aside>
+
+  <main class="main-area">
+
+    <!-- ════ ANALYTICS ════ -->
+    <div data-panel="analytics" class="active">
+      <h1 class="display-md mb-lg">Analytics Dashboard</h1>
+      <div class="stat-grid mb-lg" id="an-stats">
+        <div class="stat-box skel" style="min-height:90px"></div>
+        <div class="stat-box skel" style="min-height:90px"></div>
+        <div class="stat-box skel" style="min-height:90px"></div>
+        <div class="stat-box skel" style="min-height:90px"></div>
+        <div class="stat-box skel" style="min-height:90px"></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><h3 class="mb-md">Recent Draws</h3><div id="an-draws" class="divide-y"></div></div>
+        <div class="card"><h3 class="mb-md">Recent Winners</h3><div id="an-winners" class="divide-y"></div></div>
+      </div>
+      <div class="grid-2 mt-md">
+        <div class="card"><h3 class="mb-md">Revenue Breakdown</h3><div id="an-revenue"></div></div>
+        <div class="card"><h3 class="mb-md">Charity Contributions</h3><div id="an-charity"></div></div>
+      </div>
+    </div>
+
+    <!-- ════ USERS ════ -->
+    <div data-panel="users">
+      <div class="flex items-center justify-between mb-lg">
+        <h1 class="display-md">Users</h1>
+        <input type="text" class="form-control" id="user-search" placeholder="Search name / email…" oninput="searchUsers(this.value)" style="width:240px"/>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Sub Status</th><th>Charity %</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="8" class="text-center text-muted" style="padding:2rem">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between mt-md" id="users-paging"></div>
+    </div>
+
+    <!-- ════ DRAWS ════ -->
+    <div data-panel="draws">
+      <div class="flex items-center justify-between mb-lg">
+        <h1 class="display-md">Draws</h1>
+        <button class="btn btn-gold" onclick="openModal('create-draw-ovl')">+ Create Draw</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Type</th><th>Numbers</th><th>Status</th><th>Total Pool</th><th>Jackpot</th><th>Subscribers</th><th>Actions</th></tr></thead>
+          <tbody id="draws-tbody"><tr><td colspan="8" class="text-center text-muted" style="padding:2rem">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════ WINNERS ════ -->
+    <div data-panel="winners">
+      <div class="flex items-center justify-between mb-lg">
+        <h1 class="display-md">Winners</h1>
+        <select class="form-control" id="win-filter" onchange="loadWinners(this.value)" style="width:160px">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Player</th><th>Draw</th><th>Match</th><th>Prize</th><th>Status</th><th>Proof</th><th>Submitted</th><th>Actions</th></tr></thead>
+          <tbody id="winners-tbody"><tr><td colspan="8" class="text-center text-muted" style="padding:2rem">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════ CHARITIES ════ -->
+    <div data-panel="charities">
+      <div class="flex items-center justify-between mb-lg">
+        <h1 class="display-md">Charities</h1>
+        <button class="btn btn-gold" onclick="openCharityForm()">+ Add Charity</button>
+      </div>
+      <div id="charity-admin-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Create Draw Modal ── -->
+<div class="overlay" id="create-draw-ovl">
+  <div class="modal">
+    <div class="modal-hd"><h3>Create Monthly Draw</h3><button class="modal-close" onclick="closeModal('create-draw-ovl')">✕</button></div>
+    <div class="form-group"><label class="form-label">Month</label><input type="month" class="form-control" id="dw-month"/></div>
+    <div class="form-group"><label class="form-label">Draw Type</label>
+      <select class="form-control" id="dw-type">
+        <option value="random">Random — standard lottery</option>
+        <option value="algorithmic_frequent">Algorithmic — most frequent scores</option>
+        <option value="algorithmic_infrequent">Algorithmic — least frequent scores</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Previous Jackpot Rollover (pence)</label><input type="number" class="form-control" id="dw-rollover" value="0" min="0"/></div>
+    <div class="form-group"><label class="form-label">Notes (optional)</label><textarea class="form-control" id="dw-notes" rows="2" placeholder="Any notes about this draw…"></textarea></div>
+    <p class="text-xs text-muted mb-md">Draw numbers are auto-generated from active subscriber scores or randomised.</p>
+    <button class="btn btn-gold btn-full" id="create-draw-btn" onclick="createDraw()">Generate &amp; Save Draw</button>
+  </div>
+</div>
+
+<!-- ── Simulation Result Modal ── -->
+<div class="overlay" id="sim-ovl">
+  <div class="modal modal-lg">
+    <div class="modal-hd"><h3>Draw Simulation Results</h3><button class="modal-close" onclick="closeModal('sim-ovl')">✕</button></div>
+    <div id="sim-body"></div>
+    <div class="flex gap-sm mt-lg">
+      <button class="btn btn-gold" id="sim-publish-btn" onclick="publishCurrentDraw()">Publish Draw</button>
+      <button class="btn btn-ghost" onclick="closeModal('sim-ovl')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit User Modal ── -->
+<div class="overlay" id="edit-user-ovl">
+  <div class="modal">
+    <div class="modal-hd"><h3>Edit User</h3><button class="modal-close" onclick="closeModal('edit-user-ovl')">✕</button></div>
+    <input type="hidden" id="eu-id"/>
+    <div class="form-group"><label class="form-label">Name</label><input type="text" class="form-control" id="eu-name"/></div>
+    <div class="form-group"><label class="form-label">Role</label>
+      <select class="form-control" id="eu-role"><option value="subscriber">Subscriber</option><option value="admin">Admin</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Subscription Status</label>
+      <select class="form-control" id="eu-sub">
+        <option value="active">Active</option><option value="inactive">Inactive</option>
+        <option value="cancelled">Cancelled</option><option value="lapsed">Lapsed</option>
+      </select>
+    </div>
+    <button class="btn btn-gold btn-full mt-sm" onclick="saveUserEdit()">Save Changes</button>
+  </div>
+</div>
+
+<!-- ── User Scores Modal ── -->
+<div class="overlay" id="user-scores-ovl">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="us-title">Scores</h3><button class="modal-close" onclick="closeModal('user-scores-ovl')">✕</button></div>
+    <div id="us-body"></div>
+  </div>
+</div>
+
+<!-- ── Reject Reason Modal ── -->
+<div class="overlay" id="reject-ovl">
+  <div class="modal">
+    <div class="modal-hd"><h3>Reject Winner</h3><button class="modal-close" onclick="closeModal('reject-ovl')">✕</button></div>
+    <div class="form-group"><label class="form-label">Rejection Reason</label><textarea class="form-control" id="reject-reason" rows="3" placeholder="Explain why this submission is rejected…"></textarea></div>
+    <input type="hidden" id="reject-winner-id"/>
+    <button class="btn btn-danger btn-full mt-sm" onclick="confirmReject()">Reject Winner</button>
+  </div>
+</div>
+
+<!-- ── Charity Form Modal ── -->
+<div class="overlay" id="charity-form-ovl">
+  <div class="modal modal-lg">
+    <div class="modal-hd"><h3 id="cf-title">Add Charity</h3><button class="modal-close" onclick="closeModal('charity-form-ovl')">✕</button></div>
+    <input type="hidden" id="cf-id"/>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Name *</label><input type="text" class="form-control" id="cf-name"/></div>
+      <div class="form-group"><label class="form-label">Website</label><input type="url" class="form-control" id="cf-website" placeholder="https://…"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Mission Statement</label><input type="text" class="form-control" id="cf-mission" placeholder="One-line mission"/></div>
+    <div class="form-group"><label class="form-label">Description *</label><textarea class="form-control" id="cf-desc" rows="4"></textarea></div>
+    <div class="form-group"><label class="form-label">Image URL</label><input type="url" class="form-control" id="cf-image" placeholder="https://…"/></div>
+    <div class="grid-2">
+      <div class="form-group"><label class="form-label">Featured on Homepage</label>
+        <select class="form-control" id="cf-featured"><option value="false">No</option><option value="true">Yes</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Active</label>
+        <select class="form-control" id="cf-active"><option value="true">Yes</option><option value="false">No</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Events (JSON array — optional)</label>
+      <textarea class="form-control" id="cf-events" rows="3" placeholder='[{"name":"Event Name","date":"2026-05-10","location":"Venue"}]'></textarea>
+    </div>
+    <button class="btn btn-gold btn-full mt-sm" onclick="saveCharity()">Save Charity</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script type="module">
+import { supabase, fmt£, fmtDate, fmtMonth } from '/js/supabase-client.js';
+import { requireAdmin, toast, openModal, closeModal as CM, showPanel, randomDraw, algorithmicDraw, calcPrizePool, runDrawAndFindWinners } from '/js/app.js';
+
+window.openModal=openModal; window.closeModal=CM;
+
+const session=await requireAdmin('/');
+if(!session)throw 0;
+
+let drawIdForPublish=null, usersPage=1;
+
+// ── Routing ───────────────────────────────────────────────────────────────────
+window.go=function(name){
+  showPanel(name,p=>{
+    if(p==='analytics')loadAnalytics();
+    if(p==='users')    loadUsers();
+    if(p==='draws')    loadDraws();
+    if(p==='winners')  loadWinners('');
+    if(p==='charities')loadCharitiesAdmin();
+  });
+};
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+async function loadAnalytics(){
+  const [
+    {count:totalUsers},
+    {count:activeSubs},
+    {count:totalDraws},
+    {count:pendingWins},
+    {data:recentDraws},
+    {data:recentWins},
+    {data:subPayments},
+    {data:charPayments},
+    {data:charities},
+  ]=await Promise.all([
+    supabase.from('profiles').select('*',{count:'exact',head:true}),
+    supabase.from('subscriptions').select('*',{count:'exact',head:true}).eq('status','active'),
+    supabase.from('draws').select('*',{count:'exact',head:true}),
+    supabase.from('draw_winners').select('*',{count:'exact',head:true}).eq('status','pending'),
+    supabase.from('draws').select('*').order('month',{ascending:false}).limit(5),
+    supabase.from('draw_winners').select('*,profiles(name)').order('created_at',{ascending:false}).limit(8),
+    supabase.from('payments').select('amount_pence').eq('type','subscription').eq('status','paid'),
+    supabase.from('payments').select('amount_pence,charity_id,charities(name)').in('type',['charity_auto','charity_manual']),
+    supabase.from('charities').select('id,name,total_received').eq('active',true).order('total_received',{ascending:false}).limit(5),
+  ]);
+
+  const totalRev=(subPayments||[]).reduce((s,p)=>s+(p.amount_pence||0),0);
+  const totalCharity=(charPayments||[]).reduce((s,p)=>s+(p.amount_pence||0),0);
+  const paidWins=await supabase.from('draw_winners').select('prize_amount',{count:'exact'}).eq('status','paid');
+  const totalPaid=(paidWins.data||[]).reduce((s,w)=>s+(w.prize_amount||0),0);
+
+  document.getElementById('an-stats').innerHTML=`
+    <div class="stat-box"><div class="stat-label">Total Users</div><div class="stat-value">${totalUsers||0}</div></div>
+    <div class="stat-box"><div class="stat-label">Active Subscribers</div><div class="stat-value text-jade">${activeSubs||0}</div></div>
+    <div class="stat-box"><div class="stat-label">Total Draws</div><div class="stat-value">${totalDraws||0}</div></div>
+    <div class="stat-box"><div class="stat-label">Pending Verification</div><div class="stat-value text-gold">${pendingWins||0}</div></div>
+    <div class="stat-box"><div class="stat-label">Total Revenue</div><div class="stat-value">${fmt£(totalRev)}</div></div>
+    <div class="stat-box"><div class="stat-label">Charity Raised</div><div class="stat-value text-jade">${fmt£(totalCharity)}</div></div>
+    <div class="stat-box"><div class="stat-label">Prizes Paid Out</div><div class="stat-value">${fmt£(totalPaid)}</div></div>`;
+
+  document.getElementById('an-draws').innerHTML=(recentDraws||[]).map(d=>`
+    <div class="flex items-center justify-between" style="padding:.65rem 0">
+      <span class="text-sm">${fmtMonth(d.month)}</span>
+      <div class="flex gap-xs">
+        <span class="text-xs text-muted">${fmt£(d.prize_pool_total)}</span>
+        <span class="badge ${d.status==='published'?'badge-jade':d.status==='simulated'?'badge-sky':'badge-muted'}">${d.status}</span>
+      </div>
+    </div>`).join('')||'<p class="text-sm text-muted">No draws yet</p>';
+
+  document.getElementById('an-winners').innerHTML=(recentWins||[]).map(w=>`
+    <div class="flex items-center justify-between" style="padding:.65rem 0">
+      <span class="text-sm">${w.profiles?.name||'—'} · <span class="badge badge-gold" style="font-size:.65rem">${w.match_count}M</span></span>
+      <div class="flex gap-xs">
+        <span class="text-sm font-bold text-gold">${fmt£(w.prize_amount)}</span>
+        <span class="badge ${w.status==='paid'?'badge-jade':w.status==='verified'?'badge-sky':w.status==='rejected'?'badge-ember':'badge-muted'}">${w.status}</span>
+      </div>
+    </div>`).join('')||'<p class="text-sm text-muted">No winners yet</p>';
+
+  document.getElementById('an-revenue').innerHTML=`
+    <div class="flex justify-between" style="padding:.6rem 0;border-bottom:1px solid var(--border)"><span class="text-sm">Subscription Revenue</span><span class="font-bold">${fmt£(totalRev)}</span></div>
+    <div class="flex justify-between" style="padding:.6rem 0;border-bottom:1px solid var(--border)"><span class="text-sm">Prizes Paid Out</span><span class="font-bold text-ember">-${fmt£(totalPaid)}</span></div>
+    <div class="flex justify-between" style="padding:.6rem 0"><span class="font-bold">Estimated Net</span><span class="font-bold text-jade">${fmt£(totalRev-totalPaid)}</span></div>`;
+
+  document.getElementById('an-charity').innerHTML=(charities||[]).map(c=>`
+    <div class="flex items-center justify-between" style="padding:.6rem 0;border-bottom:1px solid var(--border)">
+      <span class="text-sm truncate">${c.name}</span>
+      <span class="text-sm font-bold text-jade">${fmt£(c.total_received)}</span>
+    </div>`).join('')||'<p class="text-sm text-muted">No data</p>';
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+async function loadUsers(search='',page=1){
+  usersPage=page;
+  const limit=20,from=(page-1)*limit,to=from+limit-1;
+  let q=supabase.from('profiles').select('*,subscriptions(status,plan,end_date)',{count:'exact'}).range(from,to).order('created_at',{ascending:false});
+  if(search)q=q.ilike('name','%'+search+'%');
+  const {data,count}=await q;
+
+  document.getElementById('users-tbody').innerHTML=(data||[]).map(u=>{
+    const sub=u.subscriptions;
+    return `<tr>
+      <td class="font-bold text-sm">${u.name||'—'}</td>
+      <td class="text-sm text-muted">${u.id.slice(0,8)}…</td>
+      <td>${sub?.plan?`<span class="badge badge-muted">${sub.plan}</span>`:'—'}</td>
+      <td><span class="badge ${sub?.status==='active'?'badge-jade':sub?.status==='lapsed'?'badge-amber':'badge-muted'}">${sub?.status||'inactive'}</span></td>
+      <td class="text-sm">${u.charity_percent||10}%</td>
+      <td><span class="badge ${u.role==='admin'?'badge-gold':'badge-muted'}">${u.role}</span></td>
+      <td class="text-sm text-muted">${fmtDate(u.created_at)}</td>
+      <td><div class="tbl-actions">
+        <button class="btn btn-panel btn-sm" onclick="openUserEdit('${u.id}','${encodeURIComponent(u.name||'')}','${u.role}','${sub?.status||'inactive'}')">Edit</button>
+        <button class="btn btn-panel btn-sm" onclick="viewScores('${u.id}','${encodeURIComponent(u.name||'')}')">Scores</button>
+      </div></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="8" class="text-center text-muted" style="padding:2rem">No users found</td></tr>`;
+
+  const total=Math.ceil((count||0)/limit);
+  document.getElementById('users-paging').innerHTML=total>1?`
+    <span class="text-sm text-muted">Page ${page} of ${total} · ${count} users</span>
+    <div class="flex gap-xs">
+      ${page>1?`<button class="btn btn-panel btn-sm" onclick="loadUsers('',${page-1})">← Prev</button>`:''}
+      ${page<total?`<button class="btn btn-panel btn-sm" onclick="loadUsers('',${page+1})">Next →</button>`:''}
+    </div>`:`<span class="text-sm text-muted">${count||0} users</span>`;
+}
+
+let searchTimer;
+window.searchUsers=function(v){clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadUsers(v,1),350)};
+
+window.openUserEdit=function(id,name,role,subStatus){
+  document.getElementById('eu-id').value=id;
+  document.getElementById('eu-name').value=decodeURIComponent(name);
+  document.getElementById('eu-role').value=role;
+  document.getElementById('eu-sub').value=subStatus;
+  openModal('edit-user-ovl');
+};
+
+window.saveUserEdit=async function(){
+  const id=document.getElementById('eu-id').value;
+  const name=document.getElementById('eu-name').value;
+  const role=document.getElementById('eu-role').value;
+  const status=document.getElementById('eu-sub').value;
+  const [a,b]=await Promise.all([
+    supabase.from('profiles').update({name,role}).eq('id',id),
+    supabase.from('subscriptions').update({status}).eq('user_id',id),
+  ]);
+  if(a.error||b.error){toast((a.error||b.error).message,'error');return;}
+  toast('User updated!','success');CM('edit-user-ovl');loadUsers();
+};
+
+window.viewScores=async function(uid,nameEnc){
+  const name=decodeURIComponent(nameEnc);
+  const {data}=await supabase.from('scores').select('*').eq('user_id',uid).order('date',{ascending:false});
+  document.getElementById('us-title').textContent=`${name}'s Scores`;
+  document.getElementById('us-body').innerHTML=data?.length?data.map(s=>`
+    <div class="flex items-center justify-between" style="padding:.7rem 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-sm">
+        <div class="score-ball score-ball-gold">${s.score}</div>
+        <span class="text-sm">${s.score} pts — ${fmtDate(s.date)}</span>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="adminDelScore('${s.id}')">Delete</button>
+    </div>`).join(''):`<p class="text-sm text-muted">No scores logged.</p>`;
+  openModal('user-scores-ovl');
+};
+
+window.adminDelScore=async function(id){
+  if(!confirm('Delete this score?'))return;
+  await supabase.from('scores').delete().eq('id',id);
+  toast('Score deleted','info');CM('user-scores-ovl');
+};
+
+// ── Draws ─────────────────────────────────────────────────────────────────────
+async function loadDraws(){
+  const {data}=await supabase.from('draws').select('*').order('month',{ascending:false});
+  document.getElementById('draws-tbody').innerHTML=(data||[]).map(d=>`
+    <tr>
+      <td class="font-bold">${fmtMonth(d.month)}</td>
+      <td><span class="badge badge-muted">${d.draw_type}</span></td>
+      <td><div class="draw-preview-nums">${(d.numbers||[]).map(n=>`<span class="mini-ball">${n}</span>`).join('')}</div></td>
+      <td><span class="badge ${d.status==='published'?'badge-jade':d.status==='simulated'?'badge-sky':'badge-muted'}">${d.status}</span></td>
+      <td class="text-sm">${fmt£(d.prize_pool_total||0)}</td>
+      <td class="text-sm font-bold text-gold">${fmt£(d.match5_amount||0)}</td>
+      <td class="text-sm">${d.active_subscribers||0}</td>
+      <td><div class="tbl-actions">
+        ${d.status!=='published'?`<button class="btn btn-panel btn-sm" onclick="simulateDraw('${d.id}')">Simulate</button>`:''}
+        ${d.status==='simulated'?`<button class="btn btn-gold btn-sm" onclick="quickPublish('${d.id}')">Publish</button>`:''}
+        ${d.status==='published'?`<span class="text-xs text-jade">✓ Live</span>`:''}
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="8" class="text-center text-muted" style="padding:2rem">No draws created yet</td></tr>`;
+}
+
+// Set default month
+const nm=new Date();nm.setMonth(nm.getMonth()+1);
+document.getElementById('dw-month').value=nm.toISOString().slice(0,7);
+
+window.createDraw=async function(){
+  const btn=document.getElementById('create-draw-btn');
+  btn.classList.add('loading');btn.disabled=true;
+  const month=document.getElementById('dw-month').value;
+  const typeVal=document.getElementById('dw-type').value;
+  const rollover=parseInt(document.getElementById('dw-rollover').value)||0;
+  const notes=document.getElementById('dw-notes').value;
+  if(!month){toast('Select a month','error');btn.classList.remove('loading');btn.disabled=false;return;}
+
+  let numbers;
+  if(typeVal==='random') numbers=randomDraw();
+  else numbers=await algorithmicDraw(typeVal==='algorithmic_frequent'?'frequent':'infrequent');
+
+  const {count}=await supabase.from('subscriptions').select('*',{count:'exact',head:true}).eq('status','active');
+  const pool=calcPrizePool(count||0,'monthly',rollover);
+
+  const {error}=await supabase.from('draws').insert({
+    month,draw_type:typeVal.startsWith('algo')?'algorithmic':'random',
+    algo_mode:typeVal==='algorithmic_infrequent'?'infrequent':'frequent',
+    numbers,status:'draft',
+    prize_pool_total:pool.total,match5_amount:pool.match5,
+    match4_amount:pool.match4,match3_amount:pool.match3,
+    jackpot_rollover:rollover,active_subscribers:count||0,notes,
+  });
+
+  btn.classList.remove('loading');btn.disabled=false;
+  if(error){toast(error.message,'error');return;}
+  toast('Draw created!','success');CM('create-draw-ovl');loadDraws();
+};
+
+window.simulateDraw=async function(drawId){
+  const {data:draw}=await supabase.from('draws').select('*').eq('id',drawId).single();
+  const winners=await runDrawAndFindWinners(draw.numbers);
+  drawIdForPublish=drawId;
+
+  const simData={[5]:winners[5]||[],[4]:winners[4]||[],[3]:winners[3]||[]};
+  await supabase.from('draws').update({status:'simulated',simulation_data:simData}).eq('id',drawId);
+
+  document.getElementById('sim-body').innerHTML=`
+    <div class="draw-preview-nums mb-md">${draw.numbers.map(n=>`<div class="score-ball score-ball-gold">${n}</div>`).join('')}</div>
+    <div class="stat-grid mb-md" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-box"><div class="stat-label">5-Match Winners</div><div class="stat-value text-gold">${winners[5]?.length||0}</div></div>
+      <div class="stat-box"><div class="stat-label">4-Match Winners</div><div class="stat-value">${winners[4]?.length||0}</div></div>
+      <div class="stat-box"><div class="stat-label">3-Match Winners</div><div class="stat-value">${winners[3]?.length||0}</div></div>
+    </div>
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-box"><div class="stat-label">Jackpot</div><div class="stat-value" style="font-size:1.1rem">${fmt£(draw.match5_amount)}</div></div>
+      <div class="stat-box"><div class="stat-label">4-Match Pool</div><div class="stat-value" style="font-size:1.1rem">${fmt£(draw.match4_amount)}</div></div>
+      <div class="stat-box"><div class="stat-label">3-Match Pool</div><div class="stat-value" style="font-size:1.1rem">${fmt£(draw.match3_amount)}</div></div>
+    </div>
+    ${!winners[5]?.length?'<p class="text-sm text-amber mt-md">⚠ No jackpot winner — jackpot will roll over to next month.</p>':''}
+    <p class="text-xs text-muted mt-md">Click Publish to make this draw live and create winner records.</p>`;
+
+  openModal('sim-ovl');
+  loadDraws();
+};
+
+window.publishCurrentDraw=async function(){
+  if(!drawIdForPublish)return;
+  await _publishDraw(drawIdForPublish);
+  CM('sim-ovl');
+};
+
+window.quickPublish=async function(id){
+  if(!confirm('Publish this draw? This creates winner records and cannot be undone.'))return;
+  await _publishDraw(id);
+};
+
+async function _publishDraw(drawId){
+  const {data:draw}=await supabase.from('draws').select('*').eq('id',drawId).single();
+  const winners=await runDrawAndFindWinners(draw.numbers);
+  const inserts=[];
+  for(const [mStr,uids] of Object.entries(winners)){
+    const m=parseInt(mStr);
+    if(!uids.length)continue;
+    const pool=m===5?draw.match5_amount:m===4?draw.match4_amount:draw.match3_amount;
+    const perWinner=Math.floor(pool/uids.length);
+    for(const uid of uids) inserts.push({draw_id:drawId,user_id:uid,match_count:m,prize_amount:perWinner,status:'pending'});
+  }
+  if(inserts.length){
+    const {error}=await supabase.from('draw_winners').insert(inserts);
+    if(error){toast('Error creating winners: '+error.message,'error');return;}
+  }
+  await supabase.from('draws').update({status:'published',published_at:new Date().toISOString()}).eq('id',drawId);
+  toast(`Draw published! ${inserts.length} winner record(s) created.`,'success');
+  loadDraws();
+}
+
+// ── Winners ───────────────────────────────────────────────────────────────────
+window.loadWinners=async function(status=''){
+  let q=supabase.from('draw_winners').select('*,profiles(name),draws(month)').order('created_at',{ascending:false});
+  if(status)q=q.eq('status',status);
+  const {data}=await q;
+  document.getElementById('winners-tbody').innerHTML=(data||[]).map(w=>`
+    <tr>
+      <td class="font-bold text-sm">${w.profiles?.name||'—'}</td>
+      <td class="text-sm text-muted">${fmtMonth(w.draws?.month)}</td>
+      <td><span class="badge badge-gold">${w.match_count}-Match</span></td>
+      <td class="font-bold text-gold">${fmt£(w.prize_amount)}</td>
+      <td><span class="badge ${w.status==='paid'?'badge-jade':w.status==='verified'?'badge-sky':w.status==='rejected'?'badge-ember':'badge-muted'}">${w.status}</span></td>
+      <td>${w.proof_url?`<a href="${w.proof_url}" target="_blank" class="btn btn-panel btn-sm">View Proof</a>`:'<span class="text-xs text-muted">None</span>'}</td>
+      <td class="text-xs text-muted">${fmtDate(w.proof_submitted_at)}</td>
+      <td><div class="tbl-actions">
+        ${w.status==='pending'?`<button class="btn btn-jade btn-sm" onclick="verifyWinner('${w.id}')">Approve</button><button class="btn btn-danger btn-sm" onclick="openReject('${w.id}')">Reject</button>`:''}
+        ${w.status==='verified'?`<button class="btn btn-gold btn-sm" onclick="markPaid('${w.id}')">Mark Paid</button>`:''}
+        ${w.status==='paid'||w.status==='rejected'?'<span class="text-xs text-muted">Done</span>':''}
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="8" class="text-center text-muted" style="padding:2rem">No winners found</td></tr>`;
+};
+
+window.verifyWinner=async function(id){
+  const {error}=await supabase.from('draw_winners').update({status:'verified',verified_by:session.user.id,verified_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  toast('Winner approved!','success');
+  loadWinners(document.getElementById('win-filter').value);
+};
+
+window.openReject=function(id){
+  document.getElementById('reject-winner-id').value=id;
+  document.getElementById('reject-reason').value='';
+  openModal('reject-ovl');
+};
+
+window.confirmReject=async function(){
+  const id=document.getElementById('reject-winner-id').value;
+  const reason=document.getElementById('reject-reason').value.trim()||'Proof not valid';
+  const {error}=await supabase.from('draw_winners').update({status:'rejected',rejection_reason:reason,verified_by:session.user.id,verified_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  toast('Winner rejected.','info');CM('reject-ovl');
+  loadWinners(document.getElementById('win-filter').value);
+};
+
+window.markPaid=async function(id){
+  const {error}=await supabase.from('draw_winners').update({status:'paid',paid_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  toast('Marked as paid!','success');
+  loadWinners(document.getElementById('win-filter').value);
+};
+
+// ── Charities ─────────────────────────────────────────────────────────────────
+async function loadCharitiesAdmin(){
+  const {data}=await supabase.from('charities').select('*').order('featured',{ascending:false}).order('name');
+  document.getElementById('charity-admin-list').innerHTML=(data||[]).map(c=>`
+    <div class="flex items-center gap-md" style="padding:1rem;border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:.5rem">
+      <img src="${c.image_url||'https://via.placeholder.com/48'}" alt="${c.name}" style="width:48px;height:48px;object-fit:cover;border-radius:var(--r);flex-shrink:0"/>
+      <div style="flex:1;min-width:0">
+        <div class="flex items-center gap-xs flex-wrap">
+          <span class="font-bold">${c.name}</span>
+          ${c.featured?'<span class="badge badge-gold">Featured</span>':''}
+          ${!c.active?'<span class="badge badge-ember">Inactive</span>':'<span class="badge badge-jade">Active</span>'}
+        </div>
+        <div class="text-xs text-muted mt-xs truncate">${c.description?.slice(0,90)}…</div>
+        <div class="text-xs text-jade mt-xs">${fmt£(c.total_received)} raised</div>
+      </div>
+      <div class="flex gap-xs">
+        <button class="btn btn-panel btn-sm" onclick="editCharity(${JSON.stringify(c).replace(/"/g,'&quot;')})">Edit</button>
+        <button class="btn ${c.active?'btn-danger':'btn-jade'} btn-sm" onclick="toggleCharity('${c.id}',${!c.active})">${c.active?'Deactivate':'Activate'}</button>
+      </div>
+    </div>`).join('')||'<p class="text-muted text-sm">No charities yet.</p>';
+}
+
+window.openCharityForm=function(){
+  document.getElementById('cf-title').textContent='Add Charity';
+  ['cf-id','cf-name','cf-website','cf-mission','cf-desc','cf-image','cf-events'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cf-featured').value='false';
+  document.getElementById('cf-active').value='true';
+  openModal('charity-form-ovl');
+};
+
+window.editCharity=function(c){
+  document.getElementById('cf-title').textContent='Edit Charity';
+  document.getElementById('cf-id').value=c.id;
+  document.getElementById('cf-name').value=c.name||'';
+  document.getElementById('cf-website').value=c.website||'';
+  document.getElementById('cf-mission').value=c.mission||'';
+  document.getElementById('cf-desc').value=c.description||'';
+  document.getElementById('cf-image').value=c.image_url||'';
+  document.getElementById('cf-featured').value=String(c.featured||false);
+  document.getElementById('cf-active').value=String(c.active!==false);
+  document.getElementById('cf-events').value=c.events?.length?JSON.stringify(c.events,null,2):'';
+  openModal('charity-form-ovl');
+};
+
+window.saveCharity=async function(){
+  const id=document.getElementById('cf-id').value;
+  const evRaw=document.getElementById('cf-events').value.trim();
+  let events=[];
+  if(evRaw){try{events=JSON.parse(evRaw)}catch{toast('Events JSON is invalid','error');return;}}
+  const payload={
+    name:document.getElementById('cf-name').value,
+    website:document.getElementById('cf-website').value,
+    mission:document.getElementById('cf-mission').value,
+    description:document.getElementById('cf-desc').value,
+    image_url:document.getElementById('cf-image').value,
+    featured:document.getElementById('cf-featured').value==='true',
+    active:document.getElementById('cf-active').value==='true',
+    events,
+  };
+  if(!payload.name){toast('Name is required','error');return;}
+  const {error}=id
+    ?await supabase.from('charities').update(payload).eq('id',id)
+    :await supabase.from('charities').insert({...payload,total_received:0});
+  if(error){toast(error.message,'error');return;}
+  toast(id?'Charity updated!':'Charity added!','success');
+  CM('charity-form-ovl');loadCharitiesAdmin();
+};
+
+window.toggleCharity=async function(id,active){
+  await supabase.from('charities').update({active}).eq('id',id);
+  toast(active?'Charity activated':'Charity deactivated','info');
+  loadCharitiesAdmin();
+};
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadAnalytics();
+</script>
+</body>
+</html>

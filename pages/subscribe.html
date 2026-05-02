@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Subscribe - Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+body{background:var(--bg)}
+.sub-page{max-width:820px;margin:0 auto;padding:3rem 1.5rem}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:2rem 0}
+.plan-card{border:2px solid var(--border);border-radius:var(--r-xl);padding:2.25rem;cursor:pointer;transition:border-color .2s,background .2s,transform .2s;position:relative;background:var(--panel)}
+.plan-card:hover{border-color:rgba(201,168,76,.35);transform:translateY(-2px)}
+.plan-card.selected{border-color:var(--gold);background:rgba(201,168,76,.05);box-shadow:var(--glow)}
+.plan-badge-top{position:absolute;top:-.7rem;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#e5c97a,#c9a84c);color:#080a0e;font-size:.68rem;font-weight:800;padding:.2rem .9rem;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+.plan-price-big{font-family:var(--f-display);font-size:3rem;font-weight:700;line-height:1;margin:.75rem 0 .3rem}
+.check-row{display:flex;align-items:flex-start;gap:.6rem;font-size:.88rem;color:var(--muted);margin-bottom:.55rem}
+.charity-row{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;margin:1.5rem 0}
+.pct-big{font-family:var(--f-display);font-size:2.25rem;font-weight:700;color:var(--gold);line-height:1}
+.trust-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin:2rem 0}
+.trust-item{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--muted)}
+.err-box{background:rgba(240,82,82,.12);border:1px solid rgba(240,82,82,.25);border-radius:var(--r);padding:.75rem 1rem;font-size:.84rem;color:#f05252;margin:1rem 0;display:none}
+.err-box.show{display:block}
+.breakdown-row{display:flex;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.demo-box{margin-top:2rem;padding:1.25rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg)}
+@media(max-width:600px){.plan-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-brand">Par<em>4</em>Good</a>
+  <div class="nav-right" id="nav-right">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/pages/login.html" class="btn btn-ghost btn-sm">Sign In</a>
+  </div>
+</nav>
+
+<div class="sub-page">
+  <div class="section-label">Subscribe</div>
+  <h1 class="display-lg mt-sm">Choose your plan</h1>
+  <p class="text-muted mt-sm">Secure payment. Cancel anytime. Charity contribution starts immediately.</p>
+
+  <div class="err-box" id="sub-err"></div>
+
+  <div class="plan-grid">
+    <div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
+      <div class="badge badge-muted mb-md">Monthly</div>
+      <div class="plan-price-big">&#163;9<span style="font-size:1.6rem">.99</span></div>
+      <div class="text-muted text-sm mb-lg">per month - cancel anytime</div>
+      <div class="check-row">Monthly prize draw entry</div>
+      <div class="check-row">Stableford score tracking</div>
+      <div class="check-row">Charity of your choice (min 10%)</div>
+      <div class="check-row">Winner verification and payout</div>
+      <div class="check-row">Full dashboard access</div>
+    </div>
+
+    <div class="plan-card selected" id="plan-yearly" onclick="selectPlan('yearly')">
+      <div class="plan-badge-top">Best Value - Save 25%</div>
+      <div class="badge badge-gold mb-md">Yearly</div>
+      <div class="plan-price-big">&#163;89<span style="font-size:1.6rem">.99</span></div>
+      <div class="text-muted text-sm mb-lg">per year - just &#163;7.50/month</div>
+      <div class="check-row">Everything in Monthly</div>
+      <div class="check-row">12 draw entries per year</div>
+      <div class="check-row">Priority winner processing</div>
+      <div class="check-row">Greater charity impact</div>
+      <div class="check-row">Save &#163;29.89 vs monthly</div>
+    </div>
+  </div>
+
+  <div class="charity-row">
+    <h3 class="mb-sm">Your charity contribution</h3>
+    <p class="text-sm text-muted mb-md">Set what percentage of your subscription goes to your chosen charity. Minimum 10%.</p>
+    <div class="flex items-center gap-md mb-sm">
+      <div class="pct-big" id="pct-display">10%</div>
+      <span class="text-muted text-sm" id="pct-hint">approx &#163;1.00 / month to charity</span>
+    </div>
+    <input type="range" id="charity-pct" min="10" max="100" step="5" value="10"
+      oninput="updatePct(this.value)" style="width:100%;max-width:400px"/>
+  </div>
+
+  <div class="trust-row">
+    <div class="trust-item">&#128274; Secured by Stripe</div>
+    <div class="trust-item">&#128260; Cancel anytime</div>
+    <div class="trust-item">&#128154; Charity paid monthly</div>
+    <div class="trust-item">&#128231; Receipt by email</div>
+  </div>
+
+  <div class="card mb-lg">
+    <h3 class="mb-md">Where your money goes</h3>
+    <div id="breakdown"></div>
+  </div>
+
+  <button class="btn btn-gold btn-xl btn-full" id="checkout-btn" onclick="startCheckout()">
+    Continue to Secure Checkout
+  </button>
+  <p class="text-xs text-muted text-center mt-sm">Redirected to Stripe secure checkout. No card details stored here.</p>
+
+  <div class="demo-box">
+    <h3 class="mb-sm">Demo Mode (Testing Only)</h3>
+    <p class="text-sm text-muted mb-md">No Stripe setup yet? Activate subscription directly for testing.</p>
+    <button class="btn btn-ghost btn-sm" onclick="demoSubscribe()">Activate Demo Subscription</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+var selectedPlan = 'yearly';
+var charityPct = 10;
+
+function money(pence) {
+  return '\u00a3' + (pence / 100).toFixed(2);
+}
+
+function showErr(msg) {
+  var el = document.getElementById('sub-err');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function toast(msg, type) {
+  var wrap = document.getElementById('toasts');
+  if (!wrap) return;
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + (type || 'info');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3500);
+}
+
+// Check URL param for plan
+var params = new URLSearchParams(window.location.search);
+if (params.get('plan') === 'monthly') {
+  selectedPlan = 'monthly';
+  window.addEventListener('load', function() { selectPlan('monthly'); });
+}
+
+// Update nav
+(async function() {
+  try {
+    var r = await supabase.auth.getSession();
+    if (r.data && r.data.session) {
+      document.getElementById('nav-right').innerHTML =
+        '<a href="/pages/dashboard.html" class="nav-link">Dashboard</a>' +
+        '<button onclick="signOut()" class="btn btn-ghost btn-sm">Sign Out</button>';
+    }
+  } catch(e) { console.log('nav error', e); }
+})();
+
+window.signOut = async function() {
+  await supabase.auth.signOut();
+  window.location.href = '/';
+};
+
+window.selectPlan = function(plan) {
+  selectedPlan = plan;
+  document.getElementById('plan-monthly').classList.toggle('selected', plan === 'monthly');
+  document.getElementById('plan-yearly').classList.toggle('selected', plan === 'yearly');
+  updateBreakdown();
+};
+
+window.updatePct = function(val) {
+  charityPct = Number(val);
+  document.getElementById('pct-display').textContent = val + '%';
+  updateBreakdown();
+};
+
+function updateBreakdown() {
+  var base    = selectedPlan === 'yearly' ? Math.round(8999 / 12) : 999;
+  var charity = Math.round(base * charityPct / 100);
+  var pool    = Math.round(base * 0.50);
+  var ops     = Math.max(0, base - charity - pool);
+
+  document.getElementById('pct-hint').textContent = 'approx ' + money(charity) + ' / month to charity';
+
+  document.getElementById('breakdown').innerHTML =
+    '<div class="breakdown-row"><span>Charity contribution (' + charityPct + '%)</span><span style="color:#2dd4a0;font-weight:700">' + money(charity) + '</span></div>' +
+    '<div class="breakdown-row"><span>Prize pool (50%)</span><span style="color:#c9a84c;font-weight:700">' + money(pool) + '</span></div>' +
+    '<div class="breakdown-row"><span class="text-muted">Platform and operations</span><span class="text-muted">' + money(ops) + '</span></div>' +
+    '<div class="breakdown-row" style="border-top:2px solid var(--border);border-bottom:none;font-weight:700;margin-top:.25rem"><span>Monthly total</span><span>' + money(base) + '</span></div>';
+}
+
+updateBreakdown();
+
+window.startCheckout = async function() {
+  document.getElementById('sub-err').classList.remove('show');
+  var btn = document.getElementById('checkout-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    var r = await supabase.auth.getSession();
+    var session = r.data && r.data.session;
+
+    if (!session) {
+      sessionStorage.setItem('pendingPlan', selectedPlan);
+      window.location.href = '/pages/login.html#register';
+      return;
+    }
+
+    // Save charity pct preference
+    await supabase.from('profiles')
+      .update({ charity_percent: charityPct })
+      .eq('id', session.user.id);
+
+    // Try Stripe Edge Function
+    var res = await fetch(
+      supabase.supabaseUrl + '/functions/v1/create-checkout',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({ plan: selectedPlan })
+      }
+    );
+
+    var data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      showErr((data.error || 'Checkout failed') + ' - Use Demo Mode below for testing without Stripe.');
+      btn.disabled = false;
+      btn.textContent = 'Continue to Secure Checkout';
+    }
+
+  } catch(e) {
+    showErr('Error: ' + e.message + ' - Use Demo Mode below for testing.');
+    btn.disabled = false;
+    btn.textContent = 'Continue to Secure Checkout';
+  }
+};
+
+window.demoSubscribe = async function() {
+  try {
+    var r = await supabase.auth.getSession();
+    var session = r.data && r.data.session;
+
+    if (!session) {
+      toast('Please sign in first', 'error');
+      setTimeout(function() { window.location.href = '/pages/login.html'; }, 1500);
+      return;
+    }
+
+    var uid    = session.user.id;
+    var amount = selectedPlan === 'yearly' ? 8999 : 999;
+    var today  = new Date().toISOString().slice(0, 10);
+    var end    = new Date();
+    end.setMonth(end.getMonth() + (selectedPlan === 'yearly' ? 12 : 1));
+    var endStr = end.toISOString().slice(0, 10);
+
+    // Save charity %
+    await supabase.from('profiles').update({ charity_percent: charityPct }).eq('id', uid);
+
+    // Upsert subscription
+    var sr = await supabase.from('subscriptions').upsert({
+      user_id:      uid,
+      status:       'active',
+      plan:         selectedPlan,
+      amount_pence: amount,
+      currency:     'gbp',
+      start_date:   today,
+      end_date:     endStr
+    }, { onConflict: 'user_id' });
+
+    if (sr.error) { toast('Error: ' + sr.error.message, 'error'); return; }
+
+    // Log payment
+    await supabase.from('payments').insert({
+      user_id:      uid,
+      amount_pence: amount,
+      currency:     'gbp',
+      type:         'subscription',
+      status:       'paid',
+      reference:    'demo_' + Date.now()
+    });
+
+    toast('Demo subscription activated! Redirecting...', 'success');
+    setTimeout(function() { window.location.href = '/pages/dashboard.html'; }, 1500);
+
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+};
+
+// Restore pending plan
+var pending = sessionStorage.getItem('pendingPlan');
+if (pending) { selectPlan(pending); sessionStorage.removeItem('pendingPlan'); }
+</script>
+</body>
+</html>

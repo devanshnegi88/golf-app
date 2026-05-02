@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Charities — Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+.page-hero{background:linear-gradient(135deg,var(--bg2),var(--bg));border-bottom:1px solid var(--border);padding:4rem 1.5rem 3rem}
+.search-row{display:flex;gap:.75rem;max-width:500px;margin-top:1.5rem}
+.charity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+.charity-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden;transition:transform .25s,border-color .25s;cursor:pointer}
+.charity-card:hover{transform:translateY(-4px);border-color:rgba(201,168,76,.25)}
+.charity-card img{width:100%;height:190px;object-fit:cover}
+.charity-card-body{padding:1.5rem}
+.spotlight{background:linear-gradient(135deg,var(--bg2),var(--panel));border:1px solid rgba(201,168,76,.2);border-radius:var(--r-xl);overflow:hidden;display:grid;grid-template-columns:360px 1fr;box-shadow:var(--glow);margin-bottom:3rem}
+.spotlight img{height:100%;min-height:280px;object-fit:cover;width:100%}
+.spotlight-body{padding:2.75rem}
+.event-row{display:flex;align-items:flex-start;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.event-row:last-child{border-bottom:none}
+.donate-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;margin-top:1.5rem}
+@media(max-width:700px){.spotlight{grid-template-columns:1fr}.spotlight img{height:200px}}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="/" class="nav-brand">Par<em>4</em>Good</a><div class="nav-right" id="nav-right"></div></nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="section-label">Giving Back</div>
+    <h1 class="display-lg mt-sm">Our charity <span class="gold-text">partners</span></h1>
+    <p class="text-muted mt-sm" style="max-width:520px">Every subscription contributes to one of these causes. Choose yours from your dashboard, or make a one-time donation directly below.</p>
+    <div class="search-row">
+      <input type="text" class="form-control" id="search-inp" placeholder="Search charities…" oninput="filterCharities(this.value)"/>
+      <button class="btn btn-gold" onclick="filterCharities(document.getElementById('search-inp').value)">Search</button>
+    </div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <!-- Featured spotlight -->
+    <div id="spotlight-section"></div>
+
+    <!-- All charities -->
+    <h2 class="mb-lg reveal">All Charities</h2>
+    <div class="charity-grid" id="charity-grid">
+      <div class="skel" style="height:340px;border-radius:var(--r-xl)"></div>
+      <div class="skel" style="height:340px;border-radius:var(--r-xl)"></div>
+      <div class="skel" style="height:340px;border-radius:var(--r-xl)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Charity detail modal -->
+<div class="overlay" id="detail-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-hd">
+      <h3 id="det-name">—</h3>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <img id="det-img" src="" alt="" style="width:100%;height:220px;object-fit:cover;border-radius:var(--r-lg);margin-bottom:1.25rem"/>
+    <p id="det-mission" class="text-sm text-gold mb-sm font-bold"></p>
+    <p id="det-desc" class="text-sm" style="line-height:1.8;margin-bottom:1.25rem"></p>
+    <div class="stat-grid mb-md" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="stat-box"><div class="stat-label">Total Raised</div><div class="stat-value text-jade" id="det-raised" style="font-size:1.3rem">—</div></div>
+      <div class="stat-box" id="det-website-box"><div class="stat-label">Website</div><a id="det-website" href="#" target="_blank" class="text-gold text-sm">Visit →</a></div>
+    </div>
+    <div id="det-events"></div>
+
+    <!-- Independent donation section -->
+    <div class="donate-box">
+      <h3 class="mb-sm">Make a One-Time Donation</h3>
+      <p class="text-xs text-muted mb-md">Support this charity independently — no subscription required.</p>
+      <div class="flex gap-sm flex-wrap mb-sm">
+        <button class="btn btn-panel btn-sm donate-preset" onclick="setDonation(500)">£5</button>
+        <button class="btn btn-panel btn-sm donate-preset" onclick="setDonation(1000)">£10</button>
+        <button class="btn btn-panel btn-sm donate-preset" onclick="setDonation(2500)">£25</button>
+        <button class="btn btn-panel btn-sm donate-preset" onclick="setDonation(5000)">£50</button>
+      </div>
+      <div class="flex gap-sm items-end">
+        <div class="form-group" style="margin-bottom:0;flex:1">
+          <label class="form-label">Custom Amount (£)</label>
+          <input type="number" class="form-control" id="donate-amount" placeholder="0.00" min="1" step="0.01"/>
+        </div>
+        <button class="btn btn-gold" onclick="makeDonation()">Donate →</button>
+      </div>
+      <p class="text-xs text-muted mt-sm" id="donate-status"></p>
+    </div>
+
+    <div class="flex gap-sm mt-lg">
+      <a href="/pages/dashboard.html#charity" class="btn btn-gold btn-sm">Support via Subscription</a>
+      <button class="btn btn-ghost btn-sm" onclick="closeDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer><div class="footer-inner container"><a href="/" class="nav-brand">Par<em style="color:var(--gold);font-style:normal">4</em>Good</a><p class="text-xs text-faint">© 2026 Par4Good</p></div></footer>
+<div id="toasts"></div>
+
+<script type="module">
+import { supabase, fmt£, fmtDate } from '/js/supabase-client.js';
+import { renderNav, toast } from '/js/app.js';
+
+renderNav('#nav-right');
+
+let ALL=[],currentId=null;
+
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+async function load(){
+  const {data}=await supabase.from('charities').select('*').eq('active',true).order('featured',{ascending:false}).order('total_received',{ascending:false});
+  ALL=data||[];
+  renderSpotlight();
+  renderGrid(ALL);
+}
+
+function renderSpotlight(){
+  const f=ALL.find(c=>c.featured);
+  const el=document.getElementById('spotlight-section');
+  if(!f){el.innerHTML='';return;}
+  el.innerHTML=`
+    <div class="mb-md"><span class="badge badge-gold">⭐ Featured Charity</span></div>
+    <div class="spotlight">
+      <img src="${f.image_url}" alt="${f.name}" loading="lazy"/>
+      <div class="spotlight-body">
+        <h2 style="font-family:var(--f-display);font-size:2rem;margin-bottom:.75rem">${f.name}</h2>
+        <p class="text-sm text-gold mb-sm font-bold">${f.mission||''}</p>
+        <p style="line-height:1.8">${f.description}</p>
+        ${f.events?.length?`<div class="mt-md">
+          <div class="text-xs text-muted mb-xs" style="text-transform:uppercase;letter-spacing:.1em">Upcoming Events</div>
+          ${f.events.slice(0,2).map(e=>`<div class="event-row"><span class="badge badge-gold">${e.date}</span><div><div class="font-bold">${e.name}</div><div class="text-xs text-muted">${e.location}</div></div></div>`).join('')}
+        </div>`:''}
+        <div class="flex items-center gap-md mt-lg flex-wrap">
+          <button class="btn btn-gold btn-sm" onclick="openDetail('${f.id}')">Full Profile →</button>
+          <span class="text-xs text-jade font-bold">${fmt£(f.total_received)} raised to date</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderGrid(list){
+  const el=document.getElementById('charity-grid');
+  if(!list.length){el.innerHTML='<p class="text-muted" style="grid-column:1/-1;padding:2rem 0">No charities found.</p>';return;}
+  el.innerHTML=list.map(c=>`
+    <div class="charity-card" onclick="openDetail('${c.id}')">
+      <img src="${c.image_url||'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=600&q=80'}" alt="${c.name}" loading="lazy"/>
+      <div class="charity-card-body">
+        <div class="flex gap-xs flex-wrap mb-sm">
+          ${c.featured?'<span class="badge badge-gold">Featured</span>':''}
+          ${c.events?.length?`<span class="badge badge-sky">${c.events.length} event${c.events.length!==1?'s':''}</span>`:''}
+        </div>
+        <h3 style="margin-bottom:.5rem">${c.name}</h3>
+        <p class="text-sm" style="line-height:1.7">${c.description.slice(0,120)}…</p>
+        <div class="flex items-center justify-between mt-md">
+          <span class="text-xs text-jade font-bold">${fmt£(c.total_received)} raised</span>
+          <span class="text-xs text-muted">View profile →</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.filterCharities=function(q){
+  if(!q.trim()){renderGrid(ALL);return;}
+  const l=q.toLowerCase();
+  renderGrid(ALL.filter(c=>c.name.toLowerCase().includes(l)||c.description.toLowerCase().includes(l)));
+};
+
+window.openDetail=function(id){
+  currentId=id;
+  const c=ALL.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('det-name').textContent=c.name;
+  document.getElementById('det-img').src=c.image_url||'';
+  document.getElementById('det-img').alt=c.name;
+  document.getElementById('det-mission').textContent=c.mission||'';
+  document.getElementById('det-desc').textContent=c.description;
+  document.getElementById('det-raised').textContent=fmt£(c.total_received);
+  const wa=document.getElementById('det-website');
+  wa.href=c.website||'#';wa.textContent=c.website||'—';
+  const evEl=document.getElementById('det-events');
+  evEl.innerHTML=c.events?.length?`
+    <div class="text-xs text-muted mb-xs" style="text-transform:uppercase;letter-spacing:.1em;margin-top:1.25rem">Upcoming Events</div>
+    ${c.events.map(e=>`<div class="event-row"><span class="badge badge-gold">${e.date}</span><div><div class="font-bold">${e.name}</div><div class="text-xs text-muted">${e.location}</div></div></div>`).join('')}`:'';
+  document.getElementById('donate-status').textContent='';
+  document.getElementById('donate-amount').value='';
+  document.getElementById('detail-overlay').classList.add('show');
+};
+
+window.closeDetail=function(){document.getElementById('detail-overlay').classList.remove('show')};
+
+window.setDonation=function(pence){
+  document.getElementById('donate-amount').value=(pence/100).toFixed(2);
+};
+
+window.makeDonation=async function(){
+  const amtStr=document.getElementById('donate-amount').value;
+  const amt=Math.round(parseFloat(amtStr)*100);
+  if(!amt||amt<100) return toast('Minimum donation is £1.00','error');
+  if(!currentId) return;
+
+  const {data:{session}}=await supabase.auth.getSession();
+  if(!session){
+    toast('Please sign in to donate','info');
+    setTimeout(()=>window.location.href='/pages/login.html',1500);
+    return;
+  }
+
+  // For demo: record donation directly (in production, route through Stripe)
+  const {error}=await supabase.from('payments').insert({
+    user_id:session.user.id,
+    amount_pence:amt,
+    type:'charity_manual',
+    charity_id:currentId,
+    status:'paid',
+    reference:`manual_${Date.now()}`,
+  });
+
+  if(error){toast(error.message,'error');return;}
+
+  // Increment charity total
+  const c=ALL.find(x=>x.id===currentId);
+  if(c){
+    await supabase.from('charities').update({total_received:(c.total_received||0)+amt}).eq('id',currentId);
+    c.total_received=(c.total_received||0)+amt;
+    document.getElementById('det-raised').textContent=fmt£(c.total_received);
+  }
+
+  document.getElementById('donate-status').textContent='✓ Thank you for your donation!';
+  document.getElementById('donate-status').style.color='var(--jade)';
+  document.getElementById('donate-amount').value='';
+  toast(`Thank you! ${fmt£(amt)} donated to ${c?.name||'this charity'}.`,'success');
+};
+
+load();
+</script>
+</body>
+</html>

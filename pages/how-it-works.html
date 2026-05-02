@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>How It Works — Par4Good</title>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+.page-hero{padding:5rem 0 3rem;background:linear-gradient(135deg,var(--bg2),var(--bg));border-bottom:1px solid var(--border)}
+.explainer-step{display:grid;grid-template-columns:80px 1fr;gap:1.5rem;padding:2.5rem 0;border-bottom:1px solid var(--border)}
+.explainer-step:last-child{border-bottom:none}
+.step-num-big{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-size:1.75rem;font-weight:800;color:#080a0e;flex-shrink:0;box-shadow:0 4px 16px rgba(201,168,76,.3)}
+.example-scores{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0}
+.draw-match-example{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0}
+.faq-item{border-bottom:1px solid var(--border);padding:1.25rem 0}
+.faq-q{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:600}
+.faq-a{margin-top:.75rem;color:var(--muted);font-size:.9rem;line-height:1.75;display:none}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-icon{transition:transform .2s;color:var(--gold);font-size:1.1rem}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="/" class="nav-brand">Par<em>4</em>Good</a><div class="nav-right" id="nav-right"></div></nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="section-label">Explainer</div>
+    <h1 class="display-xl mt-sm">How Par<em style="color:var(--gold);font-style:normal">4</em>Good Works</h1>
+    <p class="hero-sub mt-md text-muted" style="max-width:560px">Everything you need to know — from subscribing to collecting your winnings and choosing your charity.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="max-width:780px">
+
+      <div class="explainer-step reveal">
+        <div class="step-num-big">1</div>
+        <div>
+          <h2 style="margin-bottom:.75rem">Subscribe to the platform</h2>
+          <p>Choose either a <strong style="color:var(--text)">Monthly plan (£9.99/month)</strong> or a <strong style="color:var(--text)">Yearly plan (£89.99/year)</strong> — saving 25%. Your subscription is processed securely via Stripe and renews automatically.</p>
+          <p class="mt-sm">Your subscription unlocks all platform features: score entry, draw participation, and your charity contribution. Non-subscribers can browse charities and view draw results but cannot enter draws or log scores.</p>
+          <div class="flex gap-sm flex-wrap mt-md">
+            <span class="badge badge-jade">50% to prize pool</span>
+            <span class="badge badge-gold">Min. 10% to charity</span>
+            <span class="badge badge-muted">Cancel anytime</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="explainer-step reveal">
+        <div class="step-num-big">2</div>
+        <div>
+          <h2 style="margin-bottom:.75rem">Choose your charity</h2>
+          <p>During signup (or anytime from your dashboard) you select which charity receives your monthly contribution. You can set any percentage from <strong style="color:var(--text)">10% up to 100%</strong> of your subscription fee.</p>
+          <p class="mt-sm">You can also make an <strong style="color:var(--text)">independent one-time donation</strong> to any listed charity at any time — no subscription required.</p>
+          <p class="mt-sm">Charities list upcoming golf events and you can discover featured causes on the homepage.</p>
+        </div>
+      </div>
+
+      <div class="explainer-step reveal">
+        <div class="step-num-big">3</div>
+        <div>
+          <h2 style="margin-bottom:.75rem">Enter your Stableford scores</h2>
+          <p>From your dashboard, log your golf scores in <strong style="color:var(--text)">Stableford format</strong>. Every score must be between <strong style="color:var(--text)">1 and 45</strong>, and you must record the date played. Only one score per date is allowed.</p>
+          <p class="mt-sm">The platform retains your <strong style="color:var(--text)">most recent 5 scores only</strong>. When you add a 6th score, the oldest is automatically removed. Your 5 current scores are displayed in reverse chronological order.</p>
+          <p class="mt-sm text-sm text-muted">Example — your 5 current scores:</p>
+          <div class="example-scores">
+            <div class="score-ball score-ball-gold">34</div>
+            <div class="score-ball score-ball-gold">28</div>
+            <div class="score-ball score-ball-gold">31</div>
+            <div class="score-ball score-ball-gold">22</div>
+            <div class="score-ball score-ball-gold">36</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="explainer-step reveal">
+        <div class="step-num-big">4</div>
+        <div>
+          <h2 style="margin-bottom:.75rem">The monthly draw</h2>
+          <p>Each month, an administrator generates a draw of <strong style="color:var(--text)">5 numbers between 1 and 45</strong>. The draw can be:</p>
+          <ul style="list-style:none;margin:1rem 0;display:flex;flex-direction:column;gap:.6rem">
+            <li class="flex gap-sm"><span class="badge badge-gold">Random</span><span class="text-sm text-muted">Standard lottery-style — completely random 5 numbers</span></li>
+            <li class="flex gap-sm"><span class="badge badge-sky">Algorithmic</span><span class="text-sm text-muted">Weighted toward most or least frequent subscriber scores</span></li>
+          </ul>
+          <p>Before publishing, admin can run a <strong style="color:var(--text)">simulation</strong> to preview how many winners each tier would produce. Once published, results are final.</p>
+          <p class="mt-sm text-sm text-muted">Example draw numbers:</p>
+          <div class="draw-match-example">
+            <div class="draw-ball">22</div><div class="draw-ball">28</div><div class="draw-ball">31</div><div class="draw-ball">38</div><div class="draw-ball">42</div>
+          </div>
+          <p class="text-sm text-muted">With your scores of 34, 28, 31, 22, 36 — you match <strong style="color:var(--jade)">22, 28, 31</strong> = 3-number match!</p>
+        </div>
+      </div>
+
+      <div class="explainer-step reveal">
+        <div class="step-num-big">5</div>
+        <div>
+          <h2 style="margin-bottom:.75rem">Prize pool & distribution</h2>
+          <p>50% of all subscription revenue goes into the monthly prize pool. Here's how it's divided:</p>
+          <div class="card mt-md" style="background:var(--bg3)">
+            <div class="flex items-center justify-between" style="padding:.75rem 0;border-bottom:1px solid var(--border)">
+              <div><strong>5-Number Match</strong><div class="text-xs text-muted">Match all 5 draw numbers to your scores</div></div>
+              <div class="text-right"><span class="badge badge-gold">40% of pool</span><div class="text-xs text-muted mt-xs">Jackpot — rolls over if no winner</div></div>
+            </div>
+            <div class="flex items-center justify-between" style="padding:.75rem 0;border-bottom:1px solid var(--border)">
+              <div><strong>4-Number Match</strong><div class="text-xs text-muted">Match exactly 4 draw numbers to your scores</div></div>
+              <div class="text-right"><span class="badge badge-muted">35% of pool</span><div class="text-xs text-muted mt-xs">Split equally among winners</div></div>
+            </div>
+            <div class="flex items-center justify-between" style="padding:.75rem 0">
+              <div><strong>3-Number Match</strong><div class="text-xs text-muted">Match exactly 3 draw numbers to your scores</div></div>
+              <div class="text-right"><span class="badge badge-muted">25% of pool</span><div class="text-xs text-muted mt-xs">Split equally among winners</div></div>
+            </div>
+          </div>
+          <p class="text-sm mt-md">If multiple players win the same tier, the prize is split equally. If no one matches all 5 numbers, the jackpot rolls over and is added to next month's pool.</p>
+        </div>
+      </div>
+
+      <div class="explainer-step reveal">
+        <div class="step-num-big">6</div>
+        <div>
+          <h2 style="margin-bottom:.75rem">Claiming your prize</h2>
+          <p>When draw results are published, all matching players are notified. To claim your prize, you must <strong style="color:var(--text)">upload a screenshot</strong> of your scores from your golf club's platform as proof of play.</p>
+          <p class="mt-sm">An administrator reviews and approves your submission. Once verified, your payout is processed and you'll receive confirmation. The payment status moves through: <span class="badge badge-muted">Pending</span> → <span class="badge badge-sky">Verified</span> → <span class="badge badge-jade">Paid</span>.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" style="background:var(--bg2)">
+  <div class="container" style="max-width:780px">
+    <h2 class="display-md mb-lg reveal">Frequently Asked Questions</h2>
+
+    <div class="faq-item reveal" onclick="toggleFaq(this)">
+      <div class="faq-q">What happens if I don't have 5 scores yet?<span class="faq-icon">+</span></div>
+      <div class="faq-a">You can still enter draws with fewer than 5 scores. Your numbers are simply the scores you currently have logged. However, having all 5 scores gives you the best chance of matching draw numbers.</div>
+    </div>
+    <div class="faq-item reveal" onclick="toggleFaq(this)">
+      <div class="faq-q">Can I change my charity after signing up?<span class="faq-icon">+</span></div>
+      <div class="faq-a">Yes — you can change your chosen charity at any time from the 'My Charity' section of your dashboard. The new selection takes effect from your next billing cycle.</div>
+    </div>
+    <div class="faq-item reveal" onclick="toggleFaq(this)">
+      <div class="faq-q">What if I enter the same score on two different dates?<span class="faq-icon">+</span></div>
+      <div class="faq-a">That's completely fine — the same score value can appear on different dates. What's not allowed is two entries for the same date. Each date can only have one score entry.</div>
+    </div>
+    <div class="faq-item reveal" onclick="toggleFaq(this)">
+      <div class="faq-q">How is the jackpot rollover calculated?<span class="faq-icon">+</span></div>
+      <div class="faq-a">If no player matches all 5 draw numbers in a given month, the jackpot portion (40% of that month's pool) is carried forward and added to next month's jackpot. This continues until someone wins.</div>
+    </div>
+    <div class="faq-item reveal" onclick="toggleFaq(this)">
+      <div class="faq-q">How do I cancel my subscription?<span class="faq-icon">+</span></div>
+      <div class="faq-a">You can cancel anytime from your Dashboard → Subscription → Manage Billing. Cancellation takes effect at the end of your current billing period — you retain access until then.</div>
+    </div>
+    <div class="faq-item reveal" onclick="toggleFaq(this)">
+      <div class="faq-q">Is my payment information secure?<span class="faq-icon">+</span></div>
+      <div class="faq-a">Yes. All payments are processed by Stripe, a PCI-DSS compliant payment processor. Par4Good never stores your card details — they're handled entirely by Stripe's secure infrastructure.</div>
+    </div>
+
+    <div class="text-center mt-xl reveal">
+      <a href="/pages/subscribe.html" class="btn btn-gold btn-lg">Get Started Today →</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="footer-inner"><a href="/" class="nav-brand">Par<em style="color:var(--gold);font-style:normal">4</em>Good</a><div class="footer-links"><a href="/pages/charities.html">Charities</a><a href="/pages/subscribe.html">Pricing</a></div><p class="text-xs text-faint w-full mt-sm">© 2026 Par4Good.</p></div></footer>
+<div id="toasts"></div>
+<script type="module">
+import { renderNav } from '/js/app.js';
+renderNav('#nav-right');
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+window.toggleFaq=function(el){el.classList.toggle('open')};
+</script>
+</body>
+</html>

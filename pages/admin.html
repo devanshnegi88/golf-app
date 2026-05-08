@@ -205,13 +205,7 @@
             Users
           </h1>
 
-          <input
-            type="text"
-            class="form-control"
-            id="user-search"
-            placeholder="Search users..."
-            style="width:240px"
-          />
+          <input type="text" class="form-control" id="user-search" placeholder="Search users..." style="width:240px" />
 
         </div>
 
@@ -262,7 +256,9 @@
               </tr>
             </thead>
             <tbody id="draws-tbody">
-              <tr><td colspan="4" class="text-center text-muted">Loading draws...</td></tr>
+              <tr>
+                <td colspan="4" class="text-center text-muted">Loading draws...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -292,7 +288,9 @@
               </tr>
             </thead>
             <tbody id="winners-tbody">
-              <tr><td colspan="6" class="text-center text-muted">Loading winners...</td></tr>
+              <tr>
+                <td colspan="6" class="text-center text-muted">Loading winners...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -302,7 +300,7 @@
       <section id="charities-panel" style="display:none;">
         <div class="flex items-center justify-between mb-lg">
           <h1 class="display-md">Charities</h1>
-          <button class="btn btn-gold">+ Add Charity</button>
+          <button class="btn btn-gold" onclick="addCharity()">+ Add Charity</button>
         </div>
         <div id="charity-list" class="divide-y">
           <p class="text-center text-muted py-lg">Loading charities...</p>
@@ -315,9 +313,279 @@
 
   <script type="module">
 
-    import {
-      supabase
-    } from "/js/supabase-client.js";
+    import { supabase } from "/js/supabase-client.js";
+
+    // ── AUTH GUARD ─────────────────────────────────────────────
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = "/pages/login.html";
+    } else {
+      const { data: prof } = await supabase
+        .from("profiles").select("role").eq("id", session.user.id).single();
+      if (prof?.role !== "admin") window.location.href = "/";
+    }
+
+    // ── SIGN OUT ────────────────────────────────────────────────
+    window.doSignOut = async function () {
+      await supabase.auth.signOut();
+      window.location.href = "/";
+    };
+
+    // ── HELPERS ─────────────────────────────────────────────────
+    function fmtCurrency(value) {
+      return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" })
+        .format((value || 0) / 100);
+    }
+    function fmtDate(date) {
+      if (!date) return "-";
+      return new Date(date).toLocaleDateString();
+    }
+
+    // ── PANEL NAVIGATION ────────────────────────────────────────
+    window.go = function (panel) {
+      ['analytics', 'users', 'draws', 'winners', 'charities'].forEach(p => {
+        const el = document.getElementById(p + "-panel");
+        if (el) el.style.display = "none";
+      });
+      document.getElementById(panel + "-panel").style.display = "block";
+      if (panel === "users")     loadUsers();
+      if (panel === "draws")     loadDraws();
+      if (panel === "winners")   loadWinners();
+      if (panel === "charities") loadCharities();
+    };
+
+    // ── ANALYTICS ───────────────────────────────────────────────
+    async function loadAnalytics() {
+      try {
+        const [usersRes, subsRes, drawsRes, winnersRes, paymentsRes] = await Promise.all([
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
+          supabase.from("draws").select("*", { count: "exact", head: true }),
+          supabase.from("draw_winners").select("*", { count: "exact", head: true }).eq("status", "pending"),
+          supabase.from("payments").select("amount_pence"),
+        ]);
+        const totalRevenue = (paymentsRes.data || []).reduce((s, i) => s + (i.amount_pence || 0), 0);
+        document.getElementById("total-users").textContent        = usersRes.count   || 0;
+        document.getElementById("active-subscribers").textContent = subsRes.count    || 0;
+        document.getElementById("total-draws").textContent        = drawsRes.count   || 0;
+        document.getElementById("pending-winners").textContent    = winnersRes.count || 0;
+        document.getElementById("total-revenue").textContent      = fmtCurrency(totalRevenue);
+        loadRecentDraws();
+        loadRecentWinners();
+      } catch (err) {
+        console.error("Analytics error:", err);
+      }
+    }
+
+    // ── RECENT DRAWS ────────────────────────────────────────────
+    async function loadRecentDraws() {
+      const { data, error } = await supabase.from("draws").select("*")
+        .order("created_at", { ascending: false }).limit(5);
+      const container = document.getElementById("recent-draws");
+      if (error) { container.innerHTML = `<p class="text-ember text-sm">Error: ${error.message}</p>`; return; }
+      if (!data?.length) { container.innerHTML = `<p class="text-muted text-sm">No draws yet</p>`; return; }
+      container.innerHTML = data.map(d => `
+        <div class="flex items-center justify-between" style="padding:.75rem 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div class="font-bold">${d.month}</div>
+            <div class="text-xs text-muted">${d.draw_type}</div>
+          </div>
+          <div class="text-gold font-bold">${fmtCurrency(d.prize_pool_total)}</div>
+        </div>`).join("");
+    }
+
+    // ── RECENT WINNERS ──────────────────────────────────────────
+    async function loadRecentWinners() {
+      const { data, error } = await supabase.from("draw_winners")
+        .select("*, profiles!user_id(name)")
+        .order("created_at", { ascending: false }).limit(5);
+      const container = document.getElementById("recent-winners");
+      if (error) { container.innerHTML = `<p class="text-ember text-sm">Error: ${error.message}</p>`; return; }
+      if (!data?.length) { container.innerHTML = `<p class="text-muted text-sm">No winners yet</p>`; return; }
+      container.innerHTML = data.map(w => `
+        <div class="flex items-center justify-between" style="padding:.75rem 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div class="font-bold">${w.profiles?.name || "Unknown"}</div>
+            <div class="text-xs text-muted">${w.match_count} Match</div>
+          </div>
+          <div class="text-gold font-bold">${fmtCurrency(w.prize_amount)}</div>
+        </div>`).join("");
+    }
+
+    // ── USERS ───────────────────────────────────────────────────
+    let allUsers = [];
+
+    async function loadUsers() {
+      const tbody = document.getElementById("users-tbody");
+      const { data, error } = await supabase.from("profiles").select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-ember" style="padding:2rem">Error: ${error.message}</td></tr>`;
+        return;
+      }
+      allUsers = data || [];
+      renderUsers(allUsers);
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById("users-tbody");
+      if (!users.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:2rem">No users</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>${u.name || "-"}</td>
+          <td><span class="badge">${u.role}</span></td>
+          <td>${u.charity_percent || 10}%</td>
+          <td>${u.country || "-"}</td>
+          <td>${fmtDate(u.created_at)}</td>
+          <td>
+            <div class="tbl-actions">
+              <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button>
+            </div>
+          </td>
+        </tr>`).join("");
+    }
+
+    // User search
+    document.getElementById("user-search").addEventListener("input", function () {
+      const q = this.value.toLowerCase();
+      renderUsers(allUsers.filter(u =>
+        (u.name || "").toLowerCase().includes(q) ||
+        (u.role || "").toLowerCase().includes(q) ||
+        (u.country || "").toLowerCase().includes(q)
+      ));
+    });
+
+    window.deleteUser = async function (id) {
+      if (!confirm("Delete this user profile? This cannot be undone.")) return;
+      const { error } = await supabase.from("profiles").delete().eq("id", id);
+      if (error) {
+        alert("Error: " + error.message);
+      } else {
+        alert("User deleted.");
+        loadUsers();
+      }
+    };
+
+    // ── DRAWS ───────────────────────────────────────────────────
+    async function loadDraws() {
+      const tbody = document.getElementById("draws-tbody");
+      const { data, error } = await supabase.from("draws").select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-ember" style="padding:2rem">Error: ${error.message}</td></tr>`;
+        return;
+      }
+      if (!data?.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" style="padding:2rem">No draws</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map(d => `
+        <tr>
+          <td>${d.month}</td>
+          <td>${d.draw_type}</td>
+          <td><span class="badge">${d.status}</span></td>
+          <td class="font-bold">${fmtCurrency(d.prize_pool_total)}</td>
+        </tr>`).join("");
+    }
+
+    // ── WINNERS ─────────────────────────────────────────────────
+    window.loadWinners = async function (status = "") {
+      const tbody = document.getElementById("winners-tbody");
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>`;
+      try {
+        let q = supabase.from("draw_winners")
+          .select("*, profiles!user_id(name), draws(month)")
+          .order("created_at", { ascending: false });
+        if (status) q = q.eq("status", status);
+        const { data, error } = await q;
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center text-ember" style="padding:2rem">Error: ${error.message}</td></tr>`;
+          return;
+        }
+        if (!data?.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:2rem">No winners</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = data.map(w => `
+          <tr>
+            <td class="font-bold">${w.profiles?.name || "-"}</td>
+            <td class="text-sm text-muted">${w.draws?.month || "-"}</td>
+            <td><span class="badge badge-gold">${w.match_count}-Match</span></td>
+            <td class="font-bold">${fmtCurrency(w.prize_amount)}</td>
+            <td><span class="badge">${w.status}</span></td>
+            <td>
+              <div class="tbl-actions">
+                <button class="btn btn-panel btn-sm" onclick="verifyWinner('${w.id}')">Verify</button>
+                <button class="btn btn-danger btn-sm" onclick="rejectWinner('${w.id}')">Reject</button>
+              </div>
+            </td>
+          </tr>`).join("");
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-ember" style="padding:2rem">Error: ${err.message}</td></tr>`;
+      }
+    };
+
+    window.verifyWinner = async function (id) {
+      const { error } = await supabase.from("draw_winners").update({ status: "verified" }).eq("id", id);
+      if (error) { alert("Error: " + error.message); }
+      else { alert("Winner verified."); loadWinners(document.getElementById("win-filter").value); }
+    };
+
+    window.rejectWinner = async function (id) {
+      const { error } = await supabase.from("draw_winners").update({ status: "rejected" }).eq("id", id);
+      if (error) { alert("Error: " + error.message); }
+      else { alert("Winner rejected."); loadWinners(document.getElementById("win-filter").value); }
+    };
+
+    // ── CHARITIES ───────────────────────────────────────────────
+    async function loadCharities() {
+      const container = document.getElementById("charity-list");
+      const { data, error } = await supabase.from("charities").select("*").order("name");
+      if (error) {
+        container.innerHTML = `<p class="text-center text-ember py-lg">Error: ${error.message}</p>`;
+        return;
+      }
+      if (!data?.length) {
+        container.innerHTML = `<p class="text-center text-muted py-lg">No charities</p>`;
+        return;
+      }
+      container.innerHTML = data.map(c => `
+        <div class="flex items-center justify-between py-md">
+          <div class="flex items-center gap-md">
+            <img src="${c.image_url || 'https://via.placeholder.com/40'}" style="width:40px;height:40px;object-fit:cover;border-radius:4px" />
+            <div>
+              <div class="font-bold">${c.name}</div>
+              <div class="text-xs text-muted">${c.mission || "No mission"}</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-jade">${fmtCurrency(c.total_received)}</div>
+            <div class="text-xs text-muted">Raised</div>
+          </div>
+        </div>`).join("");
+    }
+
+    window.addCharity = async function () {
+      const name = prompt("Enter charity name:");
+      if (!name?.trim()) return;
+      const mission = prompt("Enter mission description (optional):") || "";
+      const { error } = await supabase.from("charities")
+        .insert({ name: name.trim(), mission, total_received: 0 });
+      if (error) { alert("Error: " + error.message); }
+      else { alert("Charity added!"); loadCharities(); }
+    };
+
+    // ── INITIAL LOAD ────────────────────────────────────────────
+    loadAnalytics();
+
+  </script>
+
+</body>
+
+</html>
 
     // FORMAT CURRENCY
     function fmtCurrency(value) {
@@ -568,7 +836,7 @@
       const tbody = document.getElementById("users-tbody");
       if (error) {
         console.error(error);
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-ember" style="padding:2rem">Error: ${error.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-ember" style="padding:2rem">Error: ${error.message}</td></tr>`;
         return;
       }
 
